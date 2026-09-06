@@ -14,6 +14,7 @@ starting a session with different pictures of the project.
 | `AGENTS.md` | Durable project rules: scope, teaching method, scheduling constraints, ML and hardware boundaries, privacy limits. Coarse feature status in *Current state*. | Session-by-session narration. |
 | `LEARNING.md` | Lesson roadmap, lesson-by-lesson progress, teaching notes, exercises, common mistakes. | Project rules. |
 | `README.md` | What a newcomer runs and what currently works, with verified commands. | Planned features described as working. |
+| `INNOVATION.md` | A proposal for changing the project's objective, with the `AGENTS.md` amendments it would need. Unadopted proposals only. | Anything describing implemented behaviour. |
 | `HANDOFF.md` (this file) | The handoff protocol and an append-only log of what each session changed. | Any fact the files above already own. |
 
 When these disagree, `AGENTS.md` wins on rules and `LEARNING.md` wins on lesson progress.
@@ -56,6 +57,22 @@ record is the main way the two assistants drift apart.
 ## Session log
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
+
+### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written
+
+- Added `INNOVATION.md`: a proposal arguing that the project's objective should shift from
+  optimising a schedule to measuring unmet demand, with refusals recorded against their
+  binding constraint and replayed counterfactually against modified resources.
+- The user asked for a proposal and said the current `AGENTS.md` scope need not constrain
+  it. `AGENTS.md` was therefore NOT edited. The proposal lists six amendments it would
+  require and leaves them unapplied for the user to decide.
+- Added a row to the ownership table above so the new document has a defined owner.
+- Nothing was implemented and no application code changed. The proposal describes
+  behaviour that does not exist; do not treat any of it as built.
+- The observation it rests on was verified against the code: `assign_patient` in
+  `assignment.py` already computes the binding constraint on failure and discards it in a
+  message string.
+- Codex was mid-session on lesson 8 when this was written. Nothing Codex owns was touched.
 
 ### 2026-09-06 — Codex — Simple ML assignment with simulated history
 
