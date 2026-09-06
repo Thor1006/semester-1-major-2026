@@ -1,0 +1,24 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Local databases. Lesson 6 introduces SQLite persistence; patient records —
+# even fictional ones — do not belong in version control.
+*.db
+*.sqlite
+*.sqlite3
+
+# Credentials. AGENTS.md requires API keys to stay out of source and logs.
+.env
+*.key
+secrets.*
+
+# Virtual environments
+.venv/
+venv/
+
+# Editor and OS noise
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
