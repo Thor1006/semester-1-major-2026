@@ -58,6 +58,28 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-06 — Claude Code (Opus 5) — Refusal-ledger demo built
+
+- Added `demo-refusal-ledger/`, a runnable prototype of the `INNOVATION.md` proposal.
+  The user asked to see the idea working rather than described.
+- The folder is STANDALONE by design: it imports nothing from the project, so Codex can
+  keep editing `registration.py`, `assignment.py` and `duration_model.py` without
+  breaking it, and it cannot affect the lessons. It is a prototype, not a lesson.
+- Shows three wards shaped differently over five simulated days. General medicine is
+  doctor-bound with rooms idle; Pediatrics is room-bound with doctors idle. Counterfactual
+  replay reports that an extra room in General medicine absorbs zero refusals.
+- Verified: `python demo.py` produces the report, and `python -m unittest -v test_demo.py`
+  passes 10 checks, including replay exactness and the monotonicity property that adding a
+  resource never costs a case its reservation.
+- Two display bugs were found and fixed while building: outcomes keyed by case reference
+  hid a real assignment behind its later duplicate, and one count was unpadded.
+- Honest limit found while building, now documented in the demo and its README: with no
+  session completion/release, one doctor serves one case per day, so the demo resets
+  resources each morning and the absorbed counts are a floor. Release (roadmap lesson 5)
+  is a prerequisite for this measurement to be realistic. This was not obvious before
+  building it.
+- `AGENTS.md` remains unedited and the proposal remains unadopted. No project code changed.
+
 ### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written
 
 - Added `INNOVATION.md`: a proposal arguing that the project's objective should shift from
