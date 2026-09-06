@@ -7,12 +7,14 @@
     any folder: it switches to its own directory first, so the imports resolve.
 
 .EXAMPLE
-    .\run.ps1              # the demonstration
+    .\run.ps1 -Gui         # the Tkinter application
+    .\run.ps1              # the console report
     .\run.ps1 -Test        # the checks only
-    .\run.ps1 -All         # checks first, then the demonstration
+    .\run.ps1 -All         # checks first, then the console report
 #>
 [CmdletBinding()]
 param(
+    [switch]$Gui,
     [switch]$Test,
     [switch]$All
 )
@@ -66,11 +68,16 @@ if ($Test -or $All) {
     }
 }
 
-# The demo runs by default, and after the checks when -All was given. It is
-# skipped when only -Test was asked for, or when the checks just failed.
+# Something runs by default, and after the checks when -All was given. Nothing
+# runs when only -Test was asked for, or when the checks just failed.
 if (-not $Test -or $All) {
     if ($failed) {
         Write-Host "`nSkipping the demonstration because the checks failed." -ForegroundColor Yellow
+    }
+    elseif ($Gui) {
+        Write-Host "`nOpening the application window..." -ForegroundColor Cyan
+        & $python ledger_app.py
+        if ($LASTEXITCODE -ne 0) { $failed = $true }
     }
     else {
         & $python demo.py

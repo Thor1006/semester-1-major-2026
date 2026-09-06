@@ -9,7 +9,8 @@ everything here demonstrates software behaviour, not clinical effectiveness.
 
 ## Run it
 
-**Double-click `run.cmd`.** That is the whole instruction.
+**Double-click `run-app.cmd`** for the Tkinter application, or **`run.cmd`** for the
+console report. Same demonstration, two faces.
 
 From a terminal, `run.ps1` takes switches:
 
@@ -35,6 +36,26 @@ To bypass the launchers entirely:
 & 'C:\ProgramData\miniconda3\python.exe' demo.py
 & 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_demo.py
 ```
+
+## The application
+
+Four tabs over the same data:
+
+| Tab | Shows |
+| --- | --- |
+| Clinic and demand | Resource spinboxes, a form to present cases, and every outcome in arrival order |
+| Refusal ledger | Every refusal kept, with its binding constraint and what sat idle |
+| Unmet demand | Totals, and the grouping by ward and binding resource |
+| Capacity replay | What one or two more rooms or doctors would have absorbed |
+
+Press **Run the simulated week**, then raise General medicine's doctor spinbox by one
+and watch unmet demand fall from 25 to 20. Raise its rooms instead and nothing moves.
+
+The whole interface is a pure function of two things: the cases presented and the
+resource specification. Every view is recomputed by replaying that demand from
+scratch, so no view can drift out of agreement with another. That is affordable only
+because assignment is deterministic - the same property that makes the counterfactual
+exact.
 
 ## The one line that matters
 
@@ -93,10 +114,12 @@ case a reservation it previously had. Both are asserted rather than assumed.
 | `clinic.py` | Resources, first-fit assignment, and the refusal records |
 | `replay.py` | Counterfactual capacity replay |
 | `scenario.py` | The fictional five-day demand |
-| `demo.py` | Prints the report |
+| `ledger_app.py` | The Tkinter application: four tabs over the same data |
+| `demo.py` | Prints the same findings as a console report |
 | `test_demo.py` | 10 checks on the claims above |
-| `run.ps1` | Launcher: finds Python, runs the demo and/or the checks |
-| `run.cmd` | Double-clickable wrapper around `run.ps1` |
+| `run.ps1` | Launcher: finds Python, runs the app, the report, or the checks |
+| `run-app.cmd` | Double-clickable: opens the application |
+| `run.cmd` | Double-clickable: prints the console report |
 
 ## Honest limits
 

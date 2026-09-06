@@ -84,6 +84,13 @@ Newest first. One short entry per session: what changed, what was verified, what
   from unrelated directories in both modes, and the failure path was verified on a
   throwaway copy with a deliberately broken test: checks fail, the demo is skipped,
   exit code 1.
+- Added `ledger_app.py`, a Tkinter prototype of the proposal, plus `run-app.cmd` and a
+  `-Gui` switch on the launcher. Four tabs over the same clinic.py/replay.py core.
+  Verified headlessly: built, driven through every control, and torn down with no
+  exception; rendered values match the console demo (25 served, 25 unmet, +1 room in
+  General medicine absorbs 0). Layout bounds were measured on every tab and the
+  window now fits at both its default and its minimum size, which it did not at
+  first - label wraplength was forcing a 1000px minimum width.
 - `AGENTS.md` remains unedited and the proposal remains unadopted. No project code changed.
 
 ### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written
