@@ -39,6 +39,8 @@ Before reporting work as finished:
 - [ ] Updated `README.md` status and run commands if either changed, and `AGENTS.md`
       *Current state* if a feature genuinely became working.
 - [ ] Added a session log entry below.
+- [ ] Committed the change. The repository is local only; there is no remote,
+      so nothing is published by committing.
 - [ ] Stated plainly what was left unfinished or unverified.
 
 Whoever lands a change updates these in the same turn. A change that ships without its
@@ -46,14 +48,44 @@ record is the main way the two assistants drift apart.
 
 ## Open threads
 
-- The user reported completing lesson 2. Lesson 3 (ward rooms and doctor availability)
-  is the next learning increment; see `LEARNING.md` for current progress.
+- Lesson 3 room/doctor reservation is implemented and checked. User practice is pending;
+  see `LEARNING.md` for the exercise and next increment.
 - No appointment dataset, trained duration model, ESP32 connection, or external AI call
   has been implemented or verified.
 
 ## Session log
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
+
+### 2026-09-06 — Codex — Lesson 3 reservations
+
+- The user said "let's go" after completing lesson 2. Added annotated `assignment.py`, an Assign selected case action and assignment column, and a Rooms and doctors tab. Preserved lesson 2 source in `lessons/lesson_02/`; user practice files in `no-comment` were not edited.
+- The implemented increment is immediate reservation for appointments dated today, with two configured rooms/doctors per ward. Both resources must be available before state changes. See `AGENTS.md` and `README.md` for current limitations; future scheduling, releases, and stable patient identities are not implemented.
+- Added eight domain tests and expanded the existing GUI workflow check. Ran `C:\ProgramData\miniconda3\python.exe -m unittest -v test_registration.py test_assignment.py`: all 16 tests passed. Checked main control bounds at 1220x750 and 1160x720. No screenshot-based visual verification was performed.
+- Added the detailed lesson 3 walkthrough and a disabled-doctor exercise to `LEARNING.md`. Practice completion remains unconfirmed. Updated feature status and run instructions in their owning documents.
+
+### 2026-09-06 — Claude Code (Opus 5) — Git initialised
+
+- Initialised a git repository at the project root, on branch `main`. Two commits:
+  a baseline snapshot of all existing work, then a `.gitattributes` line-ending fix.
+- Added `.gitignore` covering `__pycache__/`, `*.db`/`*.sqlite*` (lesson 6 will create
+  local databases; patient records, even fictional, stay out of version control), `.env`
+  and key files, virtualenvs, and editor noise.
+- Added `.gitattributes` normalising line endings to LF. `core.autocrlf` is `true` on this
+  machine, and without normalisation a file touched by both assistants diffs entirely as
+  invisible line-ending changes.
+- The project directory is owned by the `CodexSandboxOffline` account while Claude Code
+  runs as `Thor1`, so git refused to operate until the path was added to
+  `safe.directory` in the global git config. Codex sessions may need the same exception
+  under their own account.
+- Verified at snapshot time: all 16 tests pass via
+  `python -m unittest test_registration.py test_assignment.py`, all sources compile, and
+  the working tree is clean with 20 files tracked.
+- Codex was actively writing lesson 3 during this session. `assignment.py` and
+  `test_assignment.py` are captured in the baseline commit as working-but-in-progress;
+  this session did not review, verify, or change lesson 3 content, and makes no claim
+  that the lesson is finished.
+- No application code was modified. No remote was configured and nothing was pushed.
 
 ### 2026-09-06 — Codex — Lesson 2 learning complete
 
