@@ -46,11 +46,12 @@ the native ttk theme with no custom styling, a `padding=24` content frame, one
 tables on the right, and no colour coding - every row states its kind in a column.
 It uses the project's own window sizes, 1220x750 and a 1160x720 minimum.
 
-Four tabs over the same data:
+**Clinic setup** on the left holds the resource spinboxes, the day and ward choosers,
+and the buttons. Four tabs on the right show the consequences:
 
 | Tab | Shows |
 | --- | --- |
-| Clinic and demand | Resource spinboxes, a form to present cases, and every outcome in arrival order |
+| Outcomes | Every case in arrival order, with what was still free at each refusal |
 | Refusal ledger | Every refusal kept, with its binding constraint and what sat idle |
 | Unmet demand | Totals, and the grouping by ward and binding resource |
 | Capacity replay | What one or two more rooms or doctors would have absorbed |
