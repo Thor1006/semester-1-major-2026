@@ -34,7 +34,8 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Implemented and checked: lesson 1, including a working window and Add callback.
 - User practice observed: you added a messagebox confirmation to lesson 1. That popup is retained in lesson 2.
 - Completed: lesson 2 registration, generated ward-based queue IDs, and an in-memory queue. The user reported finishing learning this part on 2026-09-06; no additional assessment was performed.
-- Next: lesson 3, introducing multiple rooms within each ward and doctor availability. Begin with a small example of two rooms and three waiting patients before adding time-slot scheduling.
+- Implemented and checked: lesson 3, reserving rooms and doctors for today's cases. Two rooms and two doctors per ward support the three-patient demonstration. The user's lesson 3 practice is pending.
+- Next after practice: time-slot scheduling in lesson 4. Completion/release and persistence remain later increments.
 - No model training or hardware checks are complete yet.
 
 ## First lesson's target
@@ -51,7 +52,7 @@ Practice after the lesson: change the success message to `Queue Q001 is ready fo
 
 ### Lesson 1: a window that responds
 
-**Historical lesson:** preserved in `lessons/lesson_01.py`, including your later popup experiment. The explanation below describes the original label-update lesson; the current `app.py` now implements lesson 2.
+**Historical lesson:** preserved in `lessons/lesson_01.py`, including your later popup experiment. The explanation below describes the original label-update lesson; the current `app.py` now implements lesson 3. Lesson 2 is preserved in `lessons/lesson_02/`.
 
 The snapshot contains detailed teaching comments in seven parts: imports, window creation, container layout, controls, the callback, button registration, and the event loop. The user subsequently removed the footer and replaced the success-label update with a popup; the snapshot preserves that experiment.
 
@@ -140,3 +141,60 @@ For resizing, three decisions cooperate. `pack(expand=True, fill='both')` makes 
 | Saving code while the old window is open | The process continues with previously loaded code. | Close and restart it. |
 
 **Rebuild order and reasons.** Import tools before using their names. Create the root before its children and the frame before using it as their parent. Make the Entry and result label available before the callback is invoked. Define the callback before passing its name to the button. Start the event loop after setup. Grid positions determine visual order, so constructing row 5 before row 4 is valid.
+
+### Lesson 3: assigning a room and doctor
+
+**Status:** implemented and checked; independent practice pending. Read `assignment.py` first, then `refresh_resources()` and `assign_selected()` in `app.py`. The registration code is still present, and lesson 2's source is preserved in `lessons/lesson_02/`.
+
+**Run from this project folder:**
+
+```powershell
+& 'C:\ProgramData\miniconda3\python.exe' app.py
+```
+
+**What this increment means.** You choose a registered case dated today and request an immediate reservation. The program must find both a room in its ward and an available doctor configured to support that ward. A successful reservation lasts for this running session. Selecting a future appointment does not reserve today's resources; later lessons will model actual start/end times. This lesson does not start a consultation or release a completed one.
+
+**State is the data describing the situation now.** `rooms` and `doctors` describe the resources; `assignments` describes reservations. An example room dictionary is `{'id': 'R01-1', 'ward': 'General medicine', 'enabled': True}`. An example doctor has `wards: ['General medicine']`, a list so a doctor can eventually support more than one ward. `enabled` describes whether the resource can be used at all, independently of whether it currently has a reservation.
+
+The `assignments` dictionary starts as `{}`. After an assignment it might contain:
+
+```python
+assignments = {
+    'Q0107': {'room_id': 'R01-1', 'doctor_id': 'D01-1'},
+}
+```
+
+The outer key identifies the ticket. The inner dictionary connects it to two resource IDs. Queue IDs, room IDs, and doctor IDs serve different purposes. Both `R01-1` and `R01-2` belong to the same ward; the shared `01` does not make them the same room.
+
+**A factory gives us fresh starting data.** `make_demo_resources()` builds new room/doctor dictionaries inside nested `for` loops. The outer loop visits wards, and `range(1, 3)` in the inner loop yields 1 and 2. `return rooms, doctors` returns a tuple, which `rooms, doctors = make_demo_resources()` unpacks into two names. Fresh objects make tests independent and avoid accidentally reusing another run's changed resource settings.
+
+**Derive availability from one source.** We do not maintain a separate `busy` flag on every resource and a second copy in every patient. Instead, `used_rooms = {item['room_id'] for item in assignments.values()}` derives the occupied room IDs from the existing assignments. Braces here form a set comprehension: evaluate the expression for each value and collect distinct IDs. Membership tests such as `candidate['id'] not in used_rooms` then answer whether a room is already reserved.
+
+This avoids a common consistency bug: saying a room is free in one object but reserved in another. The resource table is another view of the same assignments. Its rows are display output, not the authoritative state.
+
+**Find the first valid pair.** The function checks each room in configuration order. A room must match the destination ward, be enabled, and be absent from `used_rooms`. `and` requires all three conditions to be true. `room = None` initially means no candidate has been found; assigning a candidate replaces that value. `break` exits the search loop once the first suitable room is found.
+
+Doctor selection is similar, but checks whether the ward is in a list of supported wards. Occupancy is checked across all assignments, so a doctor supporting two wards cannot be assigned in both simultaneously. This is a deterministic first-fit rule, not an optimization algorithm. Staff choose which case to process; no clinical urgency ranking or random-ID sorting is involved.
+
+**Check first, then mutate.** Discovering a room does not immediately reserve it. The function first verifies that a doctor is also available. Only after both are found does it execute `assignments[queue_id] = assignment`. If any earlier check raises `ValueError`, the dictionary remains exactly as it was. This prevents a failed doctor search from leaving a room stranded in a reserved state.
+
+The callback runs on the one Tkinter UI thread, so a second click is processed after the first call completes. It sees the updated dictionary and cannot assign the same ticket again. This is sufficient for this local lesson, but separate users/processes would require stronger shared-storage transaction guarantees.
+
+**Connect the rule to the window.** `queue_table.selection()` returns a tuple of selected row IDs. An empty tuple is false in a condition, so it is easy to reject a click without a selection. Our row IDs are queue IDs. `next(item for item in patient_records if ...)` searches for the corresponding dictionary; the UI creates rows from that same list, so the selected record is expected to exist. The callback invokes `assign_patient`, catches its explanatory errors, and updates the table's assignment cell after success. `refresh_resources()` then rebuilds the Rooms and doctors view from the updated dictionary.
+
+`ttk.Notebook` adds tabs. Each tab is a container attached using `.add()`. The queue and resource tables can therefore use the same screen area without crowding the registration form. A tab switch changes the visible view, not the underlying data.
+
+**Trace the three-patient example.** Register three fictional General medicine cases dated today. Select them in registration order, since their randomly generated ticket values do not indicate order.
+
+| Action | Room | Doctor | Outcome |
+| --- | --- | --- | --- |
+| Assign first case | R01-1 | D01-1 | Pair reserved |
+| Assign second case | R01-2 | D01-2 | A different pair reserved |
+| Try third case | None free in that ward | No new reservation | Case stays Waiting |
+| Click first case again | Existing reservation | Existing reservation | Rejected as already assigned |
+
+**Verification.** All 16 registration/assignment tests passed. They exercise the real registration and assignment buttons, duplicate-click prevention, disabled resources, unavailable doctors without partial reservation, ward compatibility, doctors shared between wards, and date restrictions. Control bounds were checked at the default and minimum window sizes. This is software verification, not an assessment of your understanding or clinical validation.
+
+**Your practice exercise.** In `app.py`, immediately after `rooms, doctors = make_demo_resources()`, add `doctors[0]['enabled'] = False`. Save and restart. The resource tab should show the first doctor as Unavailable. Assign two cases in General medicine: the first should get a room and the remaining enabled doctor; the second should stay Waiting with a no-doctor message, even though a room is still available. Explain which check caused this and why the room was not reserved. Remove your temporary line to restore the two-doctor demonstration.
+
+**Current limits to remember.** The app tracks tickets rather than permanent patient identities; two registrations for the same person are not recognized as one patient. It does not use name matching as proof of identity. Reservation release, shifts, time intervals, priority, and persistence are future lessons. Closing the app resets all current state.

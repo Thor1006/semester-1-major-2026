@@ -17,11 +17,13 @@ The original proposal is broader than this first version. `AGENTS.md` records th
 
 ## Status
 
-Lesson 2 is runnable: enter patient name, medical history/information, appointment date, phone number, and destination ward. Medical information may be blank; the other fields are required. Registering generates a ticket, adds a row to the session queue, and shows the confirmation popup introduced by the user.
+Lesson 3 is runnable. Registration still accepts patient name, optional medical information, appointment date, phone, and destination ward. After registration, select a case dated today and click **Assign selected case**. The app reserves the first available room in that ward and first available doctor supporting it, and updates the **Rooms and doctors** tab.
 
-`Q0147` means `Q` + ward `01` + random suffix `47`. `Q0107` and `Q0142` can coexist: the ward prefix is shared and only full IDs are unique. Wards may have multiple rooms; this step does not assign rooms. The ward names/codes in `registration.py` are editable examples.
+`Q0147` means `Q` + ward `01` + random suffix `47`. `Q0107` and `Q0142` can coexist. Each example ward has two rooms and two doctors; their IDs, such as `R01-1` and `D01-1`, are separate from queue IDs. The ward names/codes in `registration.py` are editable examples.
 
-The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per running session. Different appointment dates do not reset that pool. A full pool produces a helpful error. Closing the app loses records and resets used IDs; there is no persistence, API transmission, room assignment, or scheduling yet. Use fictional patient details for this lesson.
+The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per running session. Different appointment dates do not reset that pool. A full pool produces a helpful error. Closing the app loses records and reservations and resets used IDs. Use fictional patient details for this lesson.
+
+These are immediate reservations for today; future time-slot scheduling, shifts, completion/release, persistence, clinical priority, ML, and hardware are later work. Reservations remain until the app closes. The same ticket cannot be assigned twice, but there is no permanent patient identity to detect two registrations belonging to the same person. Staff choose the case; the random ticket does not establish priority.
 
 ## Run the current lesson
 
@@ -36,12 +38,14 @@ No extra packages are required. On another computer with Python and Tkinter inst
 
 Try two fictional registrations for General medicine: both IDs should begin `Q01`, with different two-digit suffixes. Invalid dates or missing required fields should leave the form available for correction and should not add a row. Name, phone, and information clear after success; ward and date remain selected.
 
-The original lesson is preserved in `lessons/lesson_01.py`. Detailed teaching comments are in both current Python modules, and the walkthrough is in `LEARNING.md`.
+For lesson 3, register three fictional cases in General medicine with today's date. Assign them in registration order: the first two get different rooms/doctors and the third remains Waiting with a reason. Inspect the resource tab to see four reserved resources. Clicking an already-assigned case must not take another pair.
 
-Run the registration checks from this folder with:
+Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`. Run the lesson 2 snapshot with `& 'C:\ProgramData\miniconda3\python.exe' lessons/lesson_02/app.py`. Detailed comments are in the current modules; lesson 3's walkthrough is in `LEARNING.md`.
+
+Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py
 ```
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

@@ -34,8 +34,10 @@ The user explicitly wants to learn step by step and be able to recreate the proj
 - Project guidance and the original proposal are present.
 - Lesson 1 is preserved in `lessons/lesson_01.py`, including the user's confirmation-popup change.
 - Lesson 2 is implemented in `app.py` and `registration.py`: patient name, optional medical information, appointment date, phone, and destination ward; generated ward-based queue IDs; an in-memory registration list and overview table.
+- Lesson 3 adds `assignment.py`, an Assign selected case button, and a Rooms and doctors tab. Two example rooms and two example doctors are created per ward. Only today's appointments can reserve a compatible pair immediately. Duplicate ticket assignments, occupied/disabled resources, and unsupported wards are rejected; failure leaves reservation state untouched.
+- Lesson 2 is preserved in `lessons/lesson_02/` with its original registration module. Lesson 3 implementation has passed checks; the user's lesson 3 practice remains pending.
 - Queue format is `QWWRR`: two ward digits and two random digits (`00`–`99`). Repeated ward prefixes are allowed. Full IDs must be unique across the current session, even across appointment dates. A full ward pool rejects further registration without looping. This format permits 100 tickets per ward per session; persistence is not implemented.
-- The user confirmed the date means appointment date and that each ward may contain multiple rooms. Ward codes identify destinations, not rooms. Registration must not assume one patient or one room per ward; room assignment is a later step.
+- The user confirmed the date means appointment date and that each ward may contain multiple rooms. Ward codes identify destinations, not rooms. Immediate room/doctor reservation now exists; future time slots, shifts, releases/completion, clinical urgency, and stable patient identity are not implemented. Duplicate-reservation protection currently applies per queue ticket, not across separate registrations for the same person.
 - No appointment dataset, trained duration model, ESP32 connection, or external AI integration has been verified.
 - Update this section and `README.md` when working features and run commands exist. Do not describe planned capabilities as completed.
 
