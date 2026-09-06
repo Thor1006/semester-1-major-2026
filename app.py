@@ -15,6 +15,7 @@ from tkinter import messagebox, ttk
 # ID generation; this file owns the visible interface and its event handling.
 from registration import WARD_CODES, create_patient_record
 from assignment import make_demo_resources, assign_patient
+from duration_model import load_duration_model
 
 # This LIST holds one dictionary per successful registration, in insertion order.
 # It is RAM storage: closing the app loses records and knowledge of used IDs.
@@ -25,12 +26,25 @@ patient_records = []
 rooms, doctors = make_demo_resources()
 assignments = {}
 
+# Train once, before constructing the window and starting its event loop.
+# This tiny local demonstration therefore never trains inside a button callback.
+# The held-out rows evaluate the tree; they are never used by its fit() call.
+try:
+    duration_model = load_duration_model()
+    report = duration_model['report']
+    model_status = (f"Decision tree — SIMULATED history only\n"
+                    f"Test error: {report['tree_mae_minutes']:.1f} min; "
+                    f"median baseline: {report['ward_median_mae_minutes']:.1f} min")
+except (ImportError, OSError, ValueError) as error:
+    duration_model = None
+    model_status = f'ML unavailable: {error}\nFallback uses the first available pair; no duration estimate.'
+
 
 # 2. WINDOW AND CONTAINERS
 # Calling Tk constructs the root; assignment binds a name to the object.
 # Its methods set the title, requested starting dimensions, and minimum size.
 window = tk.Tk()
-window.title('Outpatient Scheduler - Patient registration')
+window.title('Outpatient Scheduler - ML assignment demo')
 window.geometry('1220x750')
 window.minsize(1160, 720)
 
@@ -139,7 +153,7 @@ queue_table.configure(yscrollcommand=queue_scroll.set)
 
 format_label = ttk.Label(
     queue_panel,
-    text='Select a case dated today, then assign a room and doctor.\nQ0147 = Q + ward 01 + random 47.\n100 IDs per ward per session; random digits do not set priority.',
+    text=model_status + '\nSelect a case dated today. Q0147 = ward 01 + random 47.',
     wraplength=390,
 )
 format_label.grid(row=2, column=0, columnspan=2, sticky='w', pady=(14, 0))
@@ -190,16 +204,24 @@ def assign_selected():
     # in our list instead of trusting text copied from the displayed columns.
     record = next(item for item in patient_records if item['queue_id'] == selected[0])
     try:
-        reservation = assign_patient(record, rooms, doctors, assignments)
+        reservation = assign_patient(record, rooms, doctors, assignments, model=duration_model)
     except ValueError as error:
         assignment_message.config(text=str(error))
         return
     queue_table.set(selected[0], 'assignment', f"{reservation['room_id']} / {reservation['doctor_id']}")
-    assignment_message.config(text=f"Reserved {reservation['room_id']} and {reservation['doctor_id']} for {selected[0]}.")
+    # Show the result AND the alternatives so a student can inspect the decision.
+    # An estimated duration does not automatically release an occupied resource.
+    explanation = f"Reserved {reservation['room_id']} / {reservation['doctor_id']}.\n{reservation['method']}"
+    if reservation['estimated_minutes'] is not None:
+        explanation += f" — {reservation['estimated_minutes']:.1f} min\nCandidates (minutes): "
+        explanation += '; '.join(
+            f"{item['room_id']}/{item['doctor_id']}: {item['estimated_minutes']:.1f}"
+            for item in reservation['candidates'])
+    assignment_message.config(text=explanation)
     refresh_resources()
 
 
-assign_button = ttk.Button(queue_panel, text='Assign selected case', command=assign_selected)
+assign_button = ttk.Button(queue_panel, text='Assign using ML' if duration_model else 'Assign (fallback)', command=assign_selected)
 assign_button.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(12, 0))
 assignment_message = ttk.Label(queue_panel, text='Choose a case to reserve a compatible room and doctor.', wraplength=470)
 assignment_message.grid(row=4, column=0, columnspan=2, sticky='w', pady=(10, 0))

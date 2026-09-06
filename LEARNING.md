@@ -18,7 +18,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 | --- | --- | --- |
 | 1 | A Tkinter window with a queue-ID field, button, and output label | Widgets, layout, functions, callbacks, and the event loop |
 | 2 | Patient registration with generated ward IDs and an in-memory queue | Lists, dictionaries, sets, validation, random selection, and displaying records |
-| 3 | A doctor and room assignment for a simple case | Resource state, conditions, and separating logic from the interface |
+| 3 | A doctor and room assignment using a small ML model | Resource constraints, features and targets, training, prediction, and baseline comparison |
 | 4 | Scheduling with time slots and staff-assigned urgency | Interval overlap, ordering, constraints, and testing edge cases |
 | 5 | Start, finish, cancel, and overrun workflows | State transitions and keeping the queue and resource views consistent |
 | 6 | Save and reload fictional appointments | SQLite, record identifiers, and persistence |
@@ -36,7 +36,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Completed: lesson 2 registration, generated ward-based queue IDs, and an in-memory queue. The user reported finishing learning this part on 2026-09-06; no additional assessment was performed.
 - Implemented and checked: lesson 3, reserving rooms and doctors for today's cases. Two rooms and two doctors per ward support the three-patient demonstration. The user's lesson 3 practice is pending.
 - Next after practice: time-slot scheduling in lesson 4. Completion/release and persistence remain later increments.
-- No model training or hardware checks are complete yet.
+- Implemented and checked: the requested lesson 3 ML extension using simulated history, including chronological evaluation and explicit fallbacks. Its detailed walkthrough is at the end of this file. ML practice remains pending; hardware checks are not complete.
 
 ## First lesson's target
 
@@ -174,7 +174,7 @@ This avoids a common consistency bug: saying a room is free in one object but re
 
 **Find the first valid pair.** The function checks each room in configuration order. A room must match the destination ward, be enabled, and be absent from `used_rooms`. `and` requires all three conditions to be true. `room = None` initially means no candidate has been found; assigning a candidate replaces that value. `break` exits the search loop once the first suitable room is found.
 
-Doctor selection is similar, but checks whether the ward is in a list of supported wards. Occupancy is checked across all assignments, so a doctor supporting two wards cannot be assigned in both simultaneously. This is a deterministic first-fit rule, not an optimization algorithm. Staff choose which case to process; no clinical urgency ranking or random-ID sorting is involved.
+Doctor selection is similar, but checks whether the ward is in a list of supported wards. Occupancy is checked across all assignments, so a doctor supporting two wards cannot be assigned in both simultaneously. This original version used a deterministic first-fit rule. **Historical explanation:** the ML extension below replaces first-fit when a model is available, so the original trace table below describes fallback behavior. Staff still choose which case to process; no clinical urgency ranking or random-ID sorting is involved.
 
 **Check first, then mutate.** Discovering a room does not immediately reserve it. The function first verifies that a doctor is also available. Only after both are found does it execute `assignments[queue_id] = assignment`. If any earlier check raises `ValueError`, the dictionary remains exactly as it was. This prevents a failed doctor search from leaving a room stranded in a reserved state.
 
@@ -198,3 +198,131 @@ The callback runs on the one Tkinter UI thread, so a second click is processed a
 **Your practice exercise.** In `app.py`, immediately after `rooms, doctors = make_demo_resources()`, add `doctors[0]['enabled'] = False`. Save and restart. The resource tab should show the first doctor as Unavailable. Assign two cases in General medicine: the first should get a room and the remaining enabled doctor; the second should stay Waiting with a no-doctor message, even though a room is still available. Explain which check caused this and why the room was not reserved. Remove your temporary line to restore the two-doctor demonstration.
 
 **Current limits to remember.** The app tracks tickets rather than permanent patient identities; two registrations for the same person are not recognized as one patient. It does not use name matching as proof of identity. Reservation release, shifts, time intervals, priority, and persistence are future lessons. Closing the app resets all current state.
+
+### Lesson 3 extension: let a simple model influence the assignment
+
+You asked to make assignment use machine learning now and approved simulated records.
+This extension changes how a feasible pair is selected. It does not move us on to
+future time slots or hardware yet. The earlier first-fit walkthrough remains useful
+for understanding constraints and the explicit fallback, but normal startup now
+trains a small decision tree.
+
+**1. Define the question the model answers.** For a given ward, room, and doctor,
+how many minutes might an appointment take? This is regression: predicting a number.
+The model does not directly output a room ID. Our assignment code asks it this same
+question for every available pair, compares the answers, and reserves the pair with
+the lowest prediction. This is a simple way to make the assignment depend on ML
+without trying to teach a model every scheduling rule at once.
+
+**2. Separate features from the target.** A feature is an input available when we
+make a prediction. A target is the observed answer we want the model to learn.
+An example history row contains General medicine, R01-2, D01-2, and a completed
+duration such as 19 minutes. The first three values are features; 19 is the target.
+`features(row)` deliberately returns only three keys. If we included completed
+duration as an input, the model would see the answer during training, while a new
+appointment would not have that answer. That mistake is called target leakage.
+
+Names, phones, and medical notes are also excluded. For now every case assigned to
+the same pair receives the same estimate. We have resource-level history, not a
+model of patient complexity. The selected ward still comes from the registration
+form; the model does not diagnose symptoms or choose a medical specialty.
+
+**3. Translate category labels into numbers.** `DictVectorizer` converts dictionary
+values such as `room_id='R01-2'` into numeric indicator columns. A column means
+“is this room R01-2?”, with 1 for yes and 0 for no. This preserves the meaning of
+an ID as a category. We do not treat doctor 2 as twice the quantity of doctor 1.
+`sparse=False` requests an ordinary dense matrix, which is small enough here.
+
+**4. Learn with `fit`.** In `train_duration_model`, `x` is the list of input
+dictionaries and `y` is the corresponding list of durations. The positions match:
+`x[0]` describes the appointment whose answer is `y[0]`. The pipeline runs the
+encoder first and the tree second. `pipeline.fit(x, y)` learns both the category
+mapping and the decision tree from those examples.
+
+A regression tree divides examples using questions about the encoded features.
+Training searches for splits that reduce variation in the durations within each
+group. At the end of a branch, a leaf stores a prediction based on its training
+examples. `max_depth=6` limits how many branching levels it can grow;
+`min_samples_leaf=5` requires at least five training examples in a leaf. These
+settings limit complexity, so the tree may give two pairs the same estimate rather
+than memorizing every small difference. `random_state=42` makes its randomized
+choices repeatable for the same data and library version. It does not improve the
+quality of the data. See the official [tree documentation](https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html)
+and [encoder documentation](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html).
+
+**5. Check the model with examples it did not train on.** The CSV has 25 dates,
+with 16 invented appointments per date. The earlier 20 dates supply 320 training
+rows. The later five dates supply 80 test rows. Splitting whole dates keeps later
+outcomes out of the fitting step. We do not fit again on those test rows afterward.
+The tree and the baseline both use training data only when producing estimates.
+
+The baseline is a simple comparison: always predict the median historical duration
+for that ward. The median is the middle value after sorting durations. It gives us
+a useful question: does the more complicated model beat this simple guess?
+For every test row, we calculate `abs(predicted - actual)`. Averaging these absolute
+errors gives mean absolute error, or MAE, measured in minutes. For example, a
+prediction of 20 for an actual duration of 24 contributes four minutes of error.
+This version measured 1.96 minutes MAE for the tree and 5.74 for the baseline.
+That is not an accuracy percentage or a promise about an individual prediction.
+
+The generator deliberately creates different average durations for different
+pairs, with small random variations. Consequently the model has a pattern it can
+learn. Our evaluation tests this invented pattern, not real hospital performance.
+We also test that changing only held-out durations changes the reported error
+without changing predictions: a practical check against test-data leakage.
+
+**6. Follow a button click through the code.** `assign_selected()` finds the
+selected record, then calls `assign_patient(..., model=duration_model)`. The
+function rejects an already-assigned ticket or a date other than today. It builds
+lists of compatible, enabled resources that are not already reserved. Two nested
+loops then enumerate their combinations. A doctor can work with either room in
+their ward; matching numeric suffixes are not required.
+
+For the first General medicine case with the included history:
+
+| Candidate | Predicted minutes |
+| --- | ---: |
+| R01-1 / D01-1 | 31.1 |
+| R01-1 / D01-2 | 31.1 |
+| R01-2 / D01-1 | 24.3 |
+| R01-2 / D01-2 | 18.9 |
+
+`pipeline.predict([example])[0]` asks for a prediction for a one-row batch and
+extracts its first answer. The surrounding list is necessary because the library
+accepts batches of examples. `min(scores, key=...)` chooses the candidate with the
+smallest estimate. The key returns a tuple: minutes first, room ID second, doctor
+ID third. Python compares the later values only if the earlier ones tie.
+
+R01-2 / D01-2 wins. Only after evaluating and validating the candidates does the
+function change `assignments`. The callback updates the table and explanation.
+For the second case, those resources are occupied, leaving R01-1 / D01-1. A third
+case stays waiting. The model cannot override occupied resources. This selects a
+pair for one chosen case; it does not optimize the whole queue or automatically
+release rooms after the predicted time.
+
+**7. Understand fallback behavior.** A newly added pair may have no matching
+history. Its estimate uses the training ward median and says “Median fallback:
+unseen pair.” If even the ward is unknown, it uses the overall training median.
+If the model cannot load at all, the button says “Assign (fallback)” and uses
+the original first-available rule, without claiming any duration estimate.
+
+**Run and inspect.** From this project folder:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+.\.venv\Scripts\python.exe train_assignment.py
+.\.venv\Scripts\python.exe -m unittest -v test_registration.py test_assignment.py test_duration_model.py
+```
+
+The first command opens the app. The second evaluates the current CSV and writes
+`artifacts/assignment_evaluation.json`; it does not open the GUI. The third runs
+23 checks, including real button callbacks, learned choices, changed training
+examples, fallbacks, and rejection without partial reservations. The model is
+trained once before the window opens, kept in RAM, and retrained on restart.
+
+**One small exercise before we advance.** Predict which pair will win if D01-2
+is disabled. Then add `doctors[1]['enabled'] = False` immediately after resource
+creation in `app.py`, restart, and assign a General medicine case. Hint: remove
+the two candidates involving D01-2 from the table above, then compare the remaining
+estimates. Restore the line afterward. Explain why the model chose the remaining
+pair and why a second case cannot take a room even if one is free.

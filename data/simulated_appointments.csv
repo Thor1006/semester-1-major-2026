@@ -1,0 +1,401 @@
+appointment_id,date,ward,room_id,doctor_id,duration_minutes,source
+SIM-0001,2026-08-01,General medicine,R01-1,D01-1,33.71,simulated
+SIM-0002,2026-08-01,General medicine,R01-1,D01-2,27.65,simulated
+SIM-0003,2026-08-01,General medicine,R01-2,D01-1,24.78,simulated
+SIM-0004,2026-08-01,General medicine,R01-2,D01-2,19.4,simulated
+SIM-0005,2026-08-01,Pediatrics,R02-1,D02-1,26.74,simulated
+SIM-0006,2026-08-01,Pediatrics,R02-1,D02-2,16.01,simulated
+SIM-0007,2026-08-01,Pediatrics,R02-2,D02-1,35.66,simulated
+SIM-0008,2026-08-01,Pediatrics,R02-2,D02-2,28.47,simulated
+SIM-0009,2026-08-01,Orthopedics,R03-1,D03-1,37.57,simulated
+SIM-0010,2026-08-01,Orthopedics,R03-1,D03-2,43.23,simulated
+SIM-0011,2026-08-01,Orthopedics,R03-2,D03-1,24.46,simulated
+SIM-0012,2026-08-01,Orthopedics,R03-2,D03-2,34.33,simulated
+SIM-0013,2026-08-01,Ophthalmology,R04-1,D04-1,17.31,simulated
+SIM-0014,2026-08-01,Ophthalmology,R04-1,D04-2,25.22,simulated
+SIM-0015,2026-08-01,Ophthalmology,R04-2,D04-1,27.52,simulated
+SIM-0016,2026-08-01,Ophthalmology,R04-2,D04-2,31.97,simulated
+SIM-0017,2026-08-02,General medicine,R01-1,D01-1,34.49,simulated
+SIM-0018,2026-08-02,General medicine,R01-1,D01-2,30.62,simulated
+SIM-0019,2026-08-02,General medicine,R01-2,D01-1,25.08,simulated
+SIM-0020,2026-08-02,General medicine,R01-2,D01-2,17.79,simulated
+SIM-0021,2026-08-02,Pediatrics,R02-1,D02-1,28.06,simulated
+SIM-0022,2026-08-02,Pediatrics,R02-1,D02-2,16.09,simulated
+SIM-0023,2026-08-02,Pediatrics,R02-2,D02-1,34.38,simulated
+SIM-0024,2026-08-02,Pediatrics,R02-2,D02-2,29.98,simulated
+SIM-0025,2026-08-02,Orthopedics,R03-1,D03-1,39.75,simulated
+SIM-0026,2026-08-02,Orthopedics,R03-1,D03-2,42.52,simulated
+SIM-0027,2026-08-02,Orthopedics,R03-2,D03-1,24.75,simulated
+SIM-0028,2026-08-02,Orthopedics,R03-2,D03-2,32.5,simulated
+SIM-0029,2026-08-02,Ophthalmology,R04-1,D04-1,17.56,simulated
+SIM-0030,2026-08-02,Ophthalmology,R04-1,D04-2,22.77,simulated
+SIM-0031,2026-08-02,Ophthalmology,R04-2,D04-1,30.14,simulated
+SIM-0032,2026-08-02,Ophthalmology,R04-2,D04-2,30.97,simulated
+SIM-0033,2026-08-03,General medicine,R01-1,D01-1,28.76,simulated
+SIM-0034,2026-08-03,General medicine,R01-1,D01-2,26.79,simulated
+SIM-0035,2026-08-03,General medicine,R01-2,D01-1,23.17,simulated
+SIM-0036,2026-08-03,General medicine,R01-2,D01-2,19.75,simulated
+SIM-0037,2026-08-03,Pediatrics,R02-1,D02-1,28.33,simulated
+SIM-0038,2026-08-03,Pediatrics,R02-1,D02-2,16.56,simulated
+SIM-0039,2026-08-03,Pediatrics,R02-2,D02-1,36.69,simulated
+SIM-0040,2026-08-03,Pediatrics,R02-2,D02-2,27.0,simulated
+SIM-0041,2026-08-03,Orthopedics,R03-1,D03-1,37.83,simulated
+SIM-0042,2026-08-03,Orthopedics,R03-1,D03-2,42.41,simulated
+SIM-0043,2026-08-03,Orthopedics,R03-2,D03-1,24.23,simulated
+SIM-0044,2026-08-03,Orthopedics,R03-2,D03-2,33.64,simulated
+SIM-0045,2026-08-03,Ophthalmology,R04-1,D04-1,17.28,simulated
+SIM-0046,2026-08-03,Ophthalmology,R04-1,D04-2,25.7,simulated
+SIM-0047,2026-08-03,Ophthalmology,R04-2,D04-1,30.3,simulated
+SIM-0048,2026-08-03,Ophthalmology,R04-2,D04-2,34.96,simulated
+SIM-0049,2026-08-04,General medicine,R01-1,D01-1,32.75,simulated
+SIM-0050,2026-08-04,General medicine,R01-1,D01-2,26.57,simulated
+SIM-0051,2026-08-04,General medicine,R01-2,D01-1,24.06,simulated
+SIM-0052,2026-08-04,General medicine,R01-2,D01-2,19.0,simulated
+SIM-0053,2026-08-04,Pediatrics,R02-1,D02-1,26.5,simulated
+SIM-0054,2026-08-04,Pediatrics,R02-1,D02-2,23.67,simulated
+SIM-0055,2026-08-04,Pediatrics,R02-2,D02-1,33.36,simulated
+SIM-0056,2026-08-04,Pediatrics,R02-2,D02-2,26.8,simulated
+SIM-0057,2026-08-04,Orthopedics,R03-1,D03-1,39.54,simulated
+SIM-0058,2026-08-04,Orthopedics,R03-1,D03-2,45.84,simulated
+SIM-0059,2026-08-04,Orthopedics,R03-2,D03-1,25.01,simulated
+SIM-0060,2026-08-04,Orthopedics,R03-2,D03-2,33.67,simulated
+SIM-0061,2026-08-04,Ophthalmology,R04-1,D04-1,18.85,simulated
+SIM-0062,2026-08-04,Ophthalmology,R04-1,D04-2,24.81,simulated
+SIM-0063,2026-08-04,Ophthalmology,R04-2,D04-1,26.15,simulated
+SIM-0064,2026-08-04,Ophthalmology,R04-2,D04-2,32.94,simulated
+SIM-0065,2026-08-05,General medicine,R01-1,D01-1,35.91,simulated
+SIM-0066,2026-08-05,General medicine,R01-1,D01-2,25.11,simulated
+SIM-0067,2026-08-05,General medicine,R01-2,D01-1,25.07,simulated
+SIM-0068,2026-08-05,General medicine,R01-2,D01-2,18.51,simulated
+SIM-0069,2026-08-05,Pediatrics,R02-1,D02-1,26.37,simulated
+SIM-0070,2026-08-05,Pediatrics,R02-1,D02-2,20.45,simulated
+SIM-0071,2026-08-05,Pediatrics,R02-2,D02-1,36.16,simulated
+SIM-0072,2026-08-05,Pediatrics,R02-2,D02-2,33.64,simulated
+SIM-0073,2026-08-05,Orthopedics,R03-1,D03-1,39.24,simulated
+SIM-0074,2026-08-05,Orthopedics,R03-1,D03-2,41.78,simulated
+SIM-0075,2026-08-05,Orthopedics,R03-2,D03-1,22.88,simulated
+SIM-0076,2026-08-05,Orthopedics,R03-2,D03-2,30.34,simulated
+SIM-0077,2026-08-05,Ophthalmology,R04-1,D04-1,17.9,simulated
+SIM-0078,2026-08-05,Ophthalmology,R04-1,D04-2,23.87,simulated
+SIM-0079,2026-08-05,Ophthalmology,R04-2,D04-1,28.86,simulated
+SIM-0080,2026-08-05,Ophthalmology,R04-2,D04-2,35.5,simulated
+SIM-0081,2026-08-06,General medicine,R01-1,D01-1,32.55,simulated
+SIM-0082,2026-08-06,General medicine,R01-1,D01-2,27.41,simulated
+SIM-0083,2026-08-06,General medicine,R01-2,D01-1,21.32,simulated
+SIM-0084,2026-08-06,General medicine,R01-2,D01-2,15.84,simulated
+SIM-0085,2026-08-06,Pediatrics,R02-1,D02-1,25.86,simulated
+SIM-0086,2026-08-06,Pediatrics,R02-1,D02-2,19.83,simulated
+SIM-0087,2026-08-06,Pediatrics,R02-2,D02-1,37.39,simulated
+SIM-0088,2026-08-06,Pediatrics,R02-2,D02-2,28.96,simulated
+SIM-0089,2026-08-06,Orthopedics,R03-1,D03-1,38.52,simulated
+SIM-0090,2026-08-06,Orthopedics,R03-1,D03-2,43.34,simulated
+SIM-0091,2026-08-06,Orthopedics,R03-2,D03-1,26.17,simulated
+SIM-0092,2026-08-06,Orthopedics,R03-2,D03-2,33.79,simulated
+SIM-0093,2026-08-06,Ophthalmology,R04-1,D04-1,16.55,simulated
+SIM-0094,2026-08-06,Ophthalmology,R04-1,D04-2,22.98,simulated
+SIM-0095,2026-08-06,Ophthalmology,R04-2,D04-1,30.81,simulated
+SIM-0096,2026-08-06,Ophthalmology,R04-2,D04-2,34.76,simulated
+SIM-0097,2026-08-07,General medicine,R01-1,D01-1,36.45,simulated
+SIM-0098,2026-08-07,General medicine,R01-1,D01-2,27.94,simulated
+SIM-0099,2026-08-07,General medicine,R01-2,D01-1,28.91,simulated
+SIM-0100,2026-08-07,General medicine,R01-2,D01-2,17.28,simulated
+SIM-0101,2026-08-07,Pediatrics,R02-1,D02-1,30.19,simulated
+SIM-0102,2026-08-07,Pediatrics,R02-1,D02-2,19.23,simulated
+SIM-0103,2026-08-07,Pediatrics,R02-2,D02-1,33.97,simulated
+SIM-0104,2026-08-07,Pediatrics,R02-2,D02-2,26.74,simulated
+SIM-0105,2026-08-07,Orthopedics,R03-1,D03-1,37.7,simulated
+SIM-0106,2026-08-07,Orthopedics,R03-1,D03-2,45.85,simulated
+SIM-0107,2026-08-07,Orthopedics,R03-2,D03-1,25.63,simulated
+SIM-0108,2026-08-07,Orthopedics,R03-2,D03-2,33.38,simulated
+SIM-0109,2026-08-07,Ophthalmology,R04-1,D04-1,11.25,simulated
+SIM-0110,2026-08-07,Ophthalmology,R04-1,D04-2,26.42,simulated
+SIM-0111,2026-08-07,Ophthalmology,R04-2,D04-1,30.11,simulated
+SIM-0112,2026-08-07,Ophthalmology,R04-2,D04-2,32.9,simulated
+SIM-0113,2026-08-08,General medicine,R01-1,D01-1,32.75,simulated
+SIM-0114,2026-08-08,General medicine,R01-1,D01-2,28.0,simulated
+SIM-0115,2026-08-08,General medicine,R01-2,D01-1,28.45,simulated
+SIM-0116,2026-08-08,General medicine,R01-2,D01-2,15.89,simulated
+SIM-0117,2026-08-08,Pediatrics,R02-1,D02-1,26.14,simulated
+SIM-0118,2026-08-08,Pediatrics,R02-1,D02-2,21.72,simulated
+SIM-0119,2026-08-08,Pediatrics,R02-2,D02-1,34.11,simulated
+SIM-0120,2026-08-08,Pediatrics,R02-2,D02-2,28.27,simulated
+SIM-0121,2026-08-08,Orthopedics,R03-1,D03-1,38.2,simulated
+SIM-0122,2026-08-08,Orthopedics,R03-1,D03-2,40.52,simulated
+SIM-0123,2026-08-08,Orthopedics,R03-2,D03-1,24.44,simulated
+SIM-0124,2026-08-08,Orthopedics,R03-2,D03-2,29.58,simulated
+SIM-0125,2026-08-08,Ophthalmology,R04-1,D04-1,17.77,simulated
+SIM-0126,2026-08-08,Ophthalmology,R04-1,D04-2,25.01,simulated
+SIM-0127,2026-08-08,Ophthalmology,R04-2,D04-1,33.57,simulated
+SIM-0128,2026-08-08,Ophthalmology,R04-2,D04-2,34.56,simulated
+SIM-0129,2026-08-09,General medicine,R01-1,D01-1,36.73,simulated
+SIM-0130,2026-08-09,General medicine,R01-1,D01-2,25.39,simulated
+SIM-0131,2026-08-09,General medicine,R01-2,D01-1,24.76,simulated
+SIM-0132,2026-08-09,General medicine,R01-2,D01-2,18.65,simulated
+SIM-0133,2026-08-09,Pediatrics,R02-1,D02-1,30.49,simulated
+SIM-0134,2026-08-09,Pediatrics,R02-1,D02-2,15.64,simulated
+SIM-0135,2026-08-09,Pediatrics,R02-2,D02-1,36.98,simulated
+SIM-0136,2026-08-09,Pediatrics,R02-2,D02-2,30.18,simulated
+SIM-0137,2026-08-09,Orthopedics,R03-1,D03-1,41.07,simulated
+SIM-0138,2026-08-09,Orthopedics,R03-1,D03-2,44.42,simulated
+SIM-0139,2026-08-09,Orthopedics,R03-2,D03-1,24.1,simulated
+SIM-0140,2026-08-09,Orthopedics,R03-2,D03-2,30.96,simulated
+SIM-0141,2026-08-09,Ophthalmology,R04-1,D04-1,13.5,simulated
+SIM-0142,2026-08-09,Ophthalmology,R04-1,D04-2,25.39,simulated
+SIM-0143,2026-08-09,Ophthalmology,R04-2,D04-1,28.62,simulated
+SIM-0144,2026-08-09,Ophthalmology,R04-2,D04-2,38.04,simulated
+SIM-0145,2026-08-10,General medicine,R01-1,D01-1,32.78,simulated
+SIM-0146,2026-08-10,General medicine,R01-1,D01-2,28.64,simulated
+SIM-0147,2026-08-10,General medicine,R01-2,D01-1,21.86,simulated
+SIM-0148,2026-08-10,General medicine,R01-2,D01-2,17.21,simulated
+SIM-0149,2026-08-10,Pediatrics,R02-1,D02-1,27.52,simulated
+SIM-0150,2026-08-10,Pediatrics,R02-1,D02-2,20.65,simulated
+SIM-0151,2026-08-10,Pediatrics,R02-2,D02-1,37.9,simulated
+SIM-0152,2026-08-10,Pediatrics,R02-2,D02-2,28.91,simulated
+SIM-0153,2026-08-10,Orthopedics,R03-1,D03-1,35.77,simulated
+SIM-0154,2026-08-10,Orthopedics,R03-1,D03-2,43.92,simulated
+SIM-0155,2026-08-10,Orthopedics,R03-2,D03-1,25.03,simulated
+SIM-0156,2026-08-10,Orthopedics,R03-2,D03-2,32.98,simulated
+SIM-0157,2026-08-10,Ophthalmology,R04-1,D04-1,14.6,simulated
+SIM-0158,2026-08-10,Ophthalmology,R04-1,D04-2,27.27,simulated
+SIM-0159,2026-08-10,Ophthalmology,R04-2,D04-1,29.18,simulated
+SIM-0160,2026-08-10,Ophthalmology,R04-2,D04-2,35.4,simulated
+SIM-0161,2026-08-11,General medicine,R01-1,D01-1,36.55,simulated
+SIM-0162,2026-08-11,General medicine,R01-1,D01-2,29.22,simulated
+SIM-0163,2026-08-11,General medicine,R01-2,D01-1,25.57,simulated
+SIM-0164,2026-08-11,General medicine,R01-2,D01-2,22.31,simulated
+SIM-0165,2026-08-11,Pediatrics,R02-1,D02-1,27.49,simulated
+SIM-0166,2026-08-11,Pediatrics,R02-1,D02-2,18.41,simulated
+SIM-0167,2026-08-11,Pediatrics,R02-2,D02-1,35.22,simulated
+SIM-0168,2026-08-11,Pediatrics,R02-2,D02-2,31.97,simulated
+SIM-0169,2026-08-11,Orthopedics,R03-1,D03-1,38.24,simulated
+SIM-0170,2026-08-11,Orthopedics,R03-1,D03-2,44.04,simulated
+SIM-0171,2026-08-11,Orthopedics,R03-2,D03-1,26.39,simulated
+SIM-0172,2026-08-11,Orthopedics,R03-2,D03-2,30.97,simulated
+SIM-0173,2026-08-11,Ophthalmology,R04-1,D04-1,12.55,simulated
+SIM-0174,2026-08-11,Ophthalmology,R04-1,D04-2,25.6,simulated
+SIM-0175,2026-08-11,Ophthalmology,R04-2,D04-1,29.46,simulated
+SIM-0176,2026-08-11,Ophthalmology,R04-2,D04-2,32.78,simulated
+SIM-0177,2026-08-12,General medicine,R01-1,D01-1,35.74,simulated
+SIM-0178,2026-08-12,General medicine,R01-1,D01-2,29.22,simulated
+SIM-0179,2026-08-12,General medicine,R01-2,D01-1,23.01,simulated
+SIM-0180,2026-08-12,General medicine,R01-2,D01-2,19.04,simulated
+SIM-0181,2026-08-12,Pediatrics,R02-1,D02-1,26.61,simulated
+SIM-0182,2026-08-12,Pediatrics,R02-1,D02-2,16.03,simulated
+SIM-0183,2026-08-12,Pediatrics,R02-2,D02-1,35.91,simulated
+SIM-0184,2026-08-12,Pediatrics,R02-2,D02-2,28.91,simulated
+SIM-0185,2026-08-12,Orthopedics,R03-1,D03-1,36.51,simulated
+SIM-0186,2026-08-12,Orthopedics,R03-1,D03-2,44.05,simulated
+SIM-0187,2026-08-12,Orthopedics,R03-2,D03-1,24.98,simulated
+SIM-0188,2026-08-12,Orthopedics,R03-2,D03-2,30.84,simulated
+SIM-0189,2026-08-12,Ophthalmology,R04-1,D04-1,16.8,simulated
+SIM-0190,2026-08-12,Ophthalmology,R04-1,D04-2,27.03,simulated
+SIM-0191,2026-08-12,Ophthalmology,R04-2,D04-1,27.57,simulated
+SIM-0192,2026-08-12,Ophthalmology,R04-2,D04-2,34.76,simulated
+SIM-0193,2026-08-13,General medicine,R01-1,D01-1,34.01,simulated
+SIM-0194,2026-08-13,General medicine,R01-1,D01-2,32.53,simulated
+SIM-0195,2026-08-13,General medicine,R01-2,D01-1,21.28,simulated
+SIM-0196,2026-08-13,General medicine,R01-2,D01-2,19.39,simulated
+SIM-0197,2026-08-13,Pediatrics,R02-1,D02-1,26.39,simulated
+SIM-0198,2026-08-13,Pediatrics,R02-1,D02-2,18.8,simulated
+SIM-0199,2026-08-13,Pediatrics,R02-2,D02-1,38.8,simulated
+SIM-0200,2026-08-13,Pediatrics,R02-2,D02-2,28.98,simulated
+SIM-0201,2026-08-13,Orthopedics,R03-1,D03-1,42.48,simulated
+SIM-0202,2026-08-13,Orthopedics,R03-1,D03-2,42.12,simulated
+SIM-0203,2026-08-13,Orthopedics,R03-2,D03-1,24.7,simulated
+SIM-0204,2026-08-13,Orthopedics,R03-2,D03-2,31.02,simulated
+SIM-0205,2026-08-13,Ophthalmology,R04-1,D04-1,14.62,simulated
+SIM-0206,2026-08-13,Ophthalmology,R04-1,D04-2,25.12,simulated
+SIM-0207,2026-08-13,Ophthalmology,R04-2,D04-1,28.43,simulated
+SIM-0208,2026-08-13,Ophthalmology,R04-2,D04-2,34.4,simulated
+SIM-0209,2026-08-14,General medicine,R01-1,D01-1,29.79,simulated
+SIM-0210,2026-08-14,General medicine,R01-1,D01-2,32.0,simulated
+SIM-0211,2026-08-14,General medicine,R01-2,D01-1,24.67,simulated
+SIM-0212,2026-08-14,General medicine,R01-2,D01-2,21.49,simulated
+SIM-0213,2026-08-14,Pediatrics,R02-1,D02-1,24.99,simulated
+SIM-0214,2026-08-14,Pediatrics,R02-1,D02-2,19.59,simulated
+SIM-0215,2026-08-14,Pediatrics,R02-2,D02-1,41.33,simulated
+SIM-0216,2026-08-14,Pediatrics,R02-2,D02-2,27.26,simulated
+SIM-0217,2026-08-14,Orthopedics,R03-1,D03-1,35.01,simulated
+SIM-0218,2026-08-14,Orthopedics,R03-1,D03-2,41.91,simulated
+SIM-0219,2026-08-14,Orthopedics,R03-2,D03-1,24.94,simulated
+SIM-0220,2026-08-14,Orthopedics,R03-2,D03-2,33.39,simulated
+SIM-0221,2026-08-14,Ophthalmology,R04-1,D04-1,18.58,simulated
+SIM-0222,2026-08-14,Ophthalmology,R04-1,D04-2,24.49,simulated
+SIM-0223,2026-08-14,Ophthalmology,R04-2,D04-1,25.8,simulated
+SIM-0224,2026-08-14,Ophthalmology,R04-2,D04-2,33.13,simulated
+SIM-0225,2026-08-15,General medicine,R01-1,D01-1,36.48,simulated
+SIM-0226,2026-08-15,General medicine,R01-1,D01-2,28.93,simulated
+SIM-0227,2026-08-15,General medicine,R01-2,D01-1,21.09,simulated
+SIM-0228,2026-08-15,General medicine,R01-2,D01-2,17.93,simulated
+SIM-0229,2026-08-15,Pediatrics,R02-1,D02-1,29.8,simulated
+SIM-0230,2026-08-15,Pediatrics,R02-1,D02-2,23.25,simulated
+SIM-0231,2026-08-15,Pediatrics,R02-2,D02-1,36.12,simulated
+SIM-0232,2026-08-15,Pediatrics,R02-2,D02-2,29.62,simulated
+SIM-0233,2026-08-15,Orthopedics,R03-1,D03-1,35.52,simulated
+SIM-0234,2026-08-15,Orthopedics,R03-1,D03-2,41.31,simulated
+SIM-0235,2026-08-15,Orthopedics,R03-2,D03-1,24.09,simulated
+SIM-0236,2026-08-15,Orthopedics,R03-2,D03-2,33.01,simulated
+SIM-0237,2026-08-15,Ophthalmology,R04-1,D04-1,17.16,simulated
+SIM-0238,2026-08-15,Ophthalmology,R04-1,D04-2,24.04,simulated
+SIM-0239,2026-08-15,Ophthalmology,R04-2,D04-1,26.7,simulated
+SIM-0240,2026-08-15,Ophthalmology,R04-2,D04-2,32.44,simulated
+SIM-0241,2026-08-16,General medicine,R01-1,D01-1,31.69,simulated
+SIM-0242,2026-08-16,General medicine,R01-1,D01-2,29.29,simulated
+SIM-0243,2026-08-16,General medicine,R01-2,D01-1,20.38,simulated
+SIM-0244,2026-08-16,General medicine,R01-2,D01-2,17.33,simulated
+SIM-0245,2026-08-16,Pediatrics,R02-1,D02-1,27.9,simulated
+SIM-0246,2026-08-16,Pediatrics,R02-1,D02-2,22.04,simulated
+SIM-0247,2026-08-16,Pediatrics,R02-2,D02-1,35.14,simulated
+SIM-0248,2026-08-16,Pediatrics,R02-2,D02-2,31.0,simulated
+SIM-0249,2026-08-16,Orthopedics,R03-1,D03-1,37.2,simulated
+SIM-0250,2026-08-16,Orthopedics,R03-1,D03-2,41.51,simulated
+SIM-0251,2026-08-16,Orthopedics,R03-2,D03-1,22.65,simulated
+SIM-0252,2026-08-16,Orthopedics,R03-2,D03-2,35.05,simulated
+SIM-0253,2026-08-16,Ophthalmology,R04-1,D04-1,17.99,simulated
+SIM-0254,2026-08-16,Ophthalmology,R04-1,D04-2,25.97,simulated
+SIM-0255,2026-08-16,Ophthalmology,R04-2,D04-1,35.66,simulated
+SIM-0256,2026-08-16,Ophthalmology,R04-2,D04-2,33.94,simulated
+SIM-0257,2026-08-17,General medicine,R01-1,D01-1,35.24,simulated
+SIM-0258,2026-08-17,General medicine,R01-1,D01-2,28.62,simulated
+SIM-0259,2026-08-17,General medicine,R01-2,D01-1,24.56,simulated
+SIM-0260,2026-08-17,General medicine,R01-2,D01-2,22.63,simulated
+SIM-0261,2026-08-17,Pediatrics,R02-1,D02-1,30.01,simulated
+SIM-0262,2026-08-17,Pediatrics,R02-1,D02-2,16.2,simulated
+SIM-0263,2026-08-17,Pediatrics,R02-2,D02-1,34.2,simulated
+SIM-0264,2026-08-17,Pediatrics,R02-2,D02-2,29.86,simulated
+SIM-0265,2026-08-17,Orthopedics,R03-1,D03-1,39.57,simulated
+SIM-0266,2026-08-17,Orthopedics,R03-1,D03-2,40.3,simulated
+SIM-0267,2026-08-17,Orthopedics,R03-2,D03-1,19.49,simulated
+SIM-0268,2026-08-17,Orthopedics,R03-2,D03-2,28.19,simulated
+SIM-0269,2026-08-17,Ophthalmology,R04-1,D04-1,15.86,simulated
+SIM-0270,2026-08-17,Ophthalmology,R04-1,D04-2,24.79,simulated
+SIM-0271,2026-08-17,Ophthalmology,R04-2,D04-1,29.69,simulated
+SIM-0272,2026-08-17,Ophthalmology,R04-2,D04-2,32.46,simulated
+SIM-0273,2026-08-18,General medicine,R01-1,D01-1,31.55,simulated
+SIM-0274,2026-08-18,General medicine,R01-1,D01-2,23.95,simulated
+SIM-0275,2026-08-18,General medicine,R01-2,D01-1,25.66,simulated
+SIM-0276,2026-08-18,General medicine,R01-2,D01-2,18.74,simulated
+SIM-0277,2026-08-18,Pediatrics,R02-1,D02-1,28.99,simulated
+SIM-0278,2026-08-18,Pediatrics,R02-1,D02-2,20.58,simulated
+SIM-0279,2026-08-18,Pediatrics,R02-2,D02-1,34.62,simulated
+SIM-0280,2026-08-18,Pediatrics,R02-2,D02-2,31.7,simulated
+SIM-0281,2026-08-18,Orthopedics,R03-1,D03-1,37.73,simulated
+SIM-0282,2026-08-18,Orthopedics,R03-1,D03-2,41.68,simulated
+SIM-0283,2026-08-18,Orthopedics,R03-2,D03-1,22.96,simulated
+SIM-0284,2026-08-18,Orthopedics,R03-2,D03-2,30.83,simulated
+SIM-0285,2026-08-18,Ophthalmology,R04-1,D04-1,11.67,simulated
+SIM-0286,2026-08-18,Ophthalmology,R04-1,D04-2,25.31,simulated
+SIM-0287,2026-08-18,Ophthalmology,R04-2,D04-1,29.5,simulated
+SIM-0288,2026-08-18,Ophthalmology,R04-2,D04-2,33.28,simulated
+SIM-0289,2026-08-19,General medicine,R01-1,D01-1,32.57,simulated
+SIM-0290,2026-08-19,General medicine,R01-1,D01-2,28.74,simulated
+SIM-0291,2026-08-19,General medicine,R01-2,D01-1,28.43,simulated
+SIM-0292,2026-08-19,General medicine,R01-2,D01-2,18.08,simulated
+SIM-0293,2026-08-19,Pediatrics,R02-1,D02-1,25.98,simulated
+SIM-0294,2026-08-19,Pediatrics,R02-1,D02-2,17.82,simulated
+SIM-0295,2026-08-19,Pediatrics,R02-2,D02-1,34.86,simulated
+SIM-0296,2026-08-19,Pediatrics,R02-2,D02-2,26.47,simulated
+SIM-0297,2026-08-19,Orthopedics,R03-1,D03-1,37.75,simulated
+SIM-0298,2026-08-19,Orthopedics,R03-1,D03-2,43.12,simulated
+SIM-0299,2026-08-19,Orthopedics,R03-2,D03-1,27.69,simulated
+SIM-0300,2026-08-19,Orthopedics,R03-2,D03-2,33.89,simulated
+SIM-0301,2026-08-19,Ophthalmology,R04-1,D04-1,18.07,simulated
+SIM-0302,2026-08-19,Ophthalmology,R04-1,D04-2,23.57,simulated
+SIM-0303,2026-08-19,Ophthalmology,R04-2,D04-1,30.34,simulated
+SIM-0304,2026-08-19,Ophthalmology,R04-2,D04-2,31.72,simulated
+SIM-0305,2026-08-20,General medicine,R01-1,D01-1,34.62,simulated
+SIM-0306,2026-08-20,General medicine,R01-1,D01-2,28.84,simulated
+SIM-0307,2026-08-20,General medicine,R01-2,D01-1,23.47,simulated
+SIM-0308,2026-08-20,General medicine,R01-2,D01-2,22.0,simulated
+SIM-0309,2026-08-20,Pediatrics,R02-1,D02-1,28.13,simulated
+SIM-0310,2026-08-20,Pediatrics,R02-1,D02-2,15.19,simulated
+SIM-0311,2026-08-20,Pediatrics,R02-2,D02-1,36.11,simulated
+SIM-0312,2026-08-20,Pediatrics,R02-2,D02-2,28.19,simulated
+SIM-0313,2026-08-20,Orthopedics,R03-1,D03-1,38.0,simulated
+SIM-0314,2026-08-20,Orthopedics,R03-1,D03-2,43.93,simulated
+SIM-0315,2026-08-20,Orthopedics,R03-2,D03-1,24.78,simulated
+SIM-0316,2026-08-20,Orthopedics,R03-2,D03-2,27.92,simulated
+SIM-0317,2026-08-20,Ophthalmology,R04-1,D04-1,13.68,simulated
+SIM-0318,2026-08-20,Ophthalmology,R04-1,D04-2,26.55,simulated
+SIM-0319,2026-08-20,Ophthalmology,R04-2,D04-1,31.6,simulated
+SIM-0320,2026-08-20,Ophthalmology,R04-2,D04-2,37.81,simulated
+SIM-0321,2026-08-21,General medicine,R01-1,D01-1,37.61,simulated
+SIM-0322,2026-08-21,General medicine,R01-1,D01-2,23.89,simulated
+SIM-0323,2026-08-21,General medicine,R01-2,D01-1,26.54,simulated
+SIM-0324,2026-08-21,General medicine,R01-2,D01-2,14.17,simulated
+SIM-0325,2026-08-21,Pediatrics,R02-1,D02-1,30.23,simulated
+SIM-0326,2026-08-21,Pediatrics,R02-1,D02-2,19.51,simulated
+SIM-0327,2026-08-21,Pediatrics,R02-2,D02-1,32.72,simulated
+SIM-0328,2026-08-21,Pediatrics,R02-2,D02-2,33.02,simulated
+SIM-0329,2026-08-21,Orthopedics,R03-1,D03-1,39.29,simulated
+SIM-0330,2026-08-21,Orthopedics,R03-1,D03-2,39.22,simulated
+SIM-0331,2026-08-21,Orthopedics,R03-2,D03-1,24.59,simulated
+SIM-0332,2026-08-21,Orthopedics,R03-2,D03-2,30.54,simulated
+SIM-0333,2026-08-21,Ophthalmology,R04-1,D04-1,16.22,simulated
+SIM-0334,2026-08-21,Ophthalmology,R04-1,D04-2,24.07,simulated
+SIM-0335,2026-08-21,Ophthalmology,R04-2,D04-1,31.75,simulated
+SIM-0336,2026-08-21,Ophthalmology,R04-2,D04-2,31.15,simulated
+SIM-0337,2026-08-22,General medicine,R01-1,D01-1,34.63,simulated
+SIM-0338,2026-08-22,General medicine,R01-1,D01-2,31.63,simulated
+SIM-0339,2026-08-22,General medicine,R01-2,D01-1,23.35,simulated
+SIM-0340,2026-08-22,General medicine,R01-2,D01-2,18.42,simulated
+SIM-0341,2026-08-22,Pediatrics,R02-1,D02-1,27.4,simulated
+SIM-0342,2026-08-22,Pediatrics,R02-1,D02-2,17.62,simulated
+SIM-0343,2026-08-22,Pediatrics,R02-2,D02-1,36.3,simulated
+SIM-0344,2026-08-22,Pediatrics,R02-2,D02-2,29.19,simulated
+SIM-0345,2026-08-22,Orthopedics,R03-1,D03-1,36.11,simulated
+SIM-0346,2026-08-22,Orthopedics,R03-1,D03-2,46.52,simulated
+SIM-0347,2026-08-22,Orthopedics,R03-2,D03-1,25.58,simulated
+SIM-0348,2026-08-22,Orthopedics,R03-2,D03-2,31.67,simulated
+SIM-0349,2026-08-22,Ophthalmology,R04-1,D04-1,14.73,simulated
+SIM-0350,2026-08-22,Ophthalmology,R04-1,D04-2,23.43,simulated
+SIM-0351,2026-08-22,Ophthalmology,R04-2,D04-1,31.46,simulated
+SIM-0352,2026-08-22,Ophthalmology,R04-2,D04-2,33.71,simulated
+SIM-0353,2026-08-23,General medicine,R01-1,D01-1,34.92,simulated
+SIM-0354,2026-08-23,General medicine,R01-1,D01-2,27.63,simulated
+SIM-0355,2026-08-23,General medicine,R01-2,D01-1,26.23,simulated
+SIM-0356,2026-08-23,General medicine,R01-2,D01-2,17.77,simulated
+SIM-0357,2026-08-23,Pediatrics,R02-1,D02-1,28.53,simulated
+SIM-0358,2026-08-23,Pediatrics,R02-1,D02-2,18.63,simulated
+SIM-0359,2026-08-23,Pediatrics,R02-2,D02-1,36.66,simulated
+SIM-0360,2026-08-23,Pediatrics,R02-2,D02-2,30.34,simulated
+SIM-0361,2026-08-23,Orthopedics,R03-1,D03-1,37.77,simulated
+SIM-0362,2026-08-23,Orthopedics,R03-1,D03-2,41.28,simulated
+SIM-0363,2026-08-23,Orthopedics,R03-2,D03-1,22.12,simulated
+SIM-0364,2026-08-23,Orthopedics,R03-2,D03-2,30.52,simulated
+SIM-0365,2026-08-23,Ophthalmology,R04-1,D04-1,14.03,simulated
+SIM-0366,2026-08-23,Ophthalmology,R04-1,D04-2,26.73,simulated
+SIM-0367,2026-08-23,Ophthalmology,R04-2,D04-1,28.91,simulated
+SIM-0368,2026-08-23,Ophthalmology,R04-2,D04-2,37.14,simulated
+SIM-0369,2026-08-24,General medicine,R01-1,D01-1,38.56,simulated
+SIM-0370,2026-08-24,General medicine,R01-1,D01-2,28.05,simulated
+SIM-0371,2026-08-24,General medicine,R01-2,D01-1,21.9,simulated
+SIM-0372,2026-08-24,General medicine,R01-2,D01-2,17.24,simulated
+SIM-0373,2026-08-24,Pediatrics,R02-1,D02-1,26.85,simulated
+SIM-0374,2026-08-24,Pediatrics,R02-1,D02-2,16.02,simulated
+SIM-0375,2026-08-24,Pediatrics,R02-2,D02-1,34.5,simulated
+SIM-0376,2026-08-24,Pediatrics,R02-2,D02-2,29.57,simulated
+SIM-0377,2026-08-24,Orthopedics,R03-1,D03-1,37.08,simulated
+SIM-0378,2026-08-24,Orthopedics,R03-1,D03-2,41.46,simulated
+SIM-0379,2026-08-24,Orthopedics,R03-2,D03-1,22.48,simulated
+SIM-0380,2026-08-24,Orthopedics,R03-2,D03-2,35.57,simulated
+SIM-0381,2026-08-24,Ophthalmology,R04-1,D04-1,15.68,simulated
+SIM-0382,2026-08-24,Ophthalmology,R04-1,D04-2,23.34,simulated
+SIM-0383,2026-08-24,Ophthalmology,R04-2,D04-1,28.25,simulated
+SIM-0384,2026-08-24,Ophthalmology,R04-2,D04-2,35.91,simulated
+SIM-0385,2026-08-25,General medicine,R01-1,D01-1,32.63,simulated
+SIM-0386,2026-08-25,General medicine,R01-1,D01-2,28.96,simulated
+SIM-0387,2026-08-25,General medicine,R01-2,D01-1,26.46,simulated
+SIM-0388,2026-08-25,General medicine,R01-2,D01-2,19.5,simulated
+SIM-0389,2026-08-25,Pediatrics,R02-1,D02-1,29.8,simulated
+SIM-0390,2026-08-25,Pediatrics,R02-1,D02-2,17.9,simulated
+SIM-0391,2026-08-25,Pediatrics,R02-2,D02-1,37.27,simulated
+SIM-0392,2026-08-25,Pediatrics,R02-2,D02-2,27.41,simulated
+SIM-0393,2026-08-25,Orthopedics,R03-1,D03-1,37.21,simulated
+SIM-0394,2026-08-25,Orthopedics,R03-1,D03-2,45.39,simulated
+SIM-0395,2026-08-25,Orthopedics,R03-2,D03-1,25.64,simulated
+SIM-0396,2026-08-25,Orthopedics,R03-2,D03-2,32.0,simulated
+SIM-0397,2026-08-25,Ophthalmology,R04-1,D04-1,13.62,simulated
+SIM-0398,2026-08-25,Ophthalmology,R04-1,D04-2,26.12,simulated
+SIM-0399,2026-08-25,Ophthalmology,R04-2,D04-1,27.74,simulated
+SIM-0400,2026-08-25,Ophthalmology,R04-2,D04-2,32.15,simulated

@@ -50,12 +50,20 @@ record is the main way the two assistants drift apart.
 
 - Lesson 3 room/doctor reservation is implemented and checked. User practice is pending;
   see `LEARNING.md` for the exercise and next increment.
-- No appointment dataset, trained duration model, ESP32 connection, or external AI call
-  has been implemented or verified.
+- Lesson 3 now includes ML pair ranking with explicitly simulated history; the
+  user's ML practice remains pending. No hardware or external AI call is verified.
 
 ## Session log
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
+
+### 2026-09-06 — Codex — Simple ML assignment with simulated history
+
+- User requested ML for assignment and explicitly approved simulated records. Added annotated `duration_model.py`, `train_assignment.py`, 400 generated historical rows with provenance, pinned dependency, and evaluation report. Assignment now scores all feasible pairs and chooses the lowest predicted duration; constraints still filter candidates first. GUI shows simulated model status, candidate estimates, and explicit fallbacks.
+- Created project-local `.venv` using the existing Miniconda Python and installed scikit-learn 1.9.0. Use its Python for ML (README commands). Fitting occurs before window creation; no background training or persisted model binary. Generator refuses to overwrite existing CSV experiments.
+- Verified all 23 tests in `.venv`, including changed training data changing the winning pair, later test outcomes not affecting fitting, invalid predictions leaving state intact, and the GUI registration/assignment workflow. Also ran the original 16 tests with the base Python to exercise missing-dependency fallback. Checked main control bounds at 1220x750 and 1160x720 with the full four-candidate message. No screenshot visual review.
+- Measured chronological simulated test MAE: tree 1.9571 minutes, training ward-median baseline 5.7391, using 320 training and 80 later test rows. First General medicine selection observed: R01-2 / D01-2, 18.9 minutes. These results demonstrate the simulated pattern only.
+- Updated current status, setup instructions, and detailed ML teaching walkthrough. Lesson 3 independent practice is pending. Real-world/patient-specific duration, global scheduling optimization, release/lifecycle, hardware, and external integrations remain unimplemented. User practice files and earlier lesson snapshots were preserved.
 
 ### 2026-09-06 — Codex — Lesson 3 reservations
 
