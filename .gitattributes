@@ -1,0 +1,6 @@
+# Normalise line endings so that edits from different tools and accounts
+# (Claude Code as Thor1, Codex in its sandbox account) do not produce
+# whole-file diffs made purely of invisible line-ending changes.
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
