@@ -78,6 +78,12 @@ Newest first. One short entry per session: what changed, what was verified, what
   resources each morning and the absorbed counts are a floor. Release (roadmap lesson 5)
   is a prerequisite for this measurement to be realistic. This was not obvious before
   building it.
+- Added `run.ps1` and a double-clickable `run.cmd` to the demo folder. They resolve
+  their own directory, so they work from any location, and probe for an interpreter
+  that actually executes rather than trusting that `python` resolves to one. Verified
+  from unrelated directories in both modes, and the failure path was verified on a
+  throwaway copy with a deliberately broken test: checks fail, the demo is skipped,
+  exit code 1.
 - `AGENTS.md` remains unedited and the proposal remains unadopted. No project code changed.
 
 ### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written

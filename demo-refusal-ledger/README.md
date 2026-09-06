@@ -9,14 +9,30 @@ everything here demonstrates software behaviour, not clinical effectiveness.
 
 ## Run it
 
+**Double-click `run.cmd`.** That is the whole instruction.
+
+From a terminal, `run.ps1` takes switches:
+
 ```powershell
-Set-Location 'C:\Users\Thor1\Documents\Pattadon\Py-SPSM-Codex\preview-1-prime\demo-refusal-ledger'
-& 'C:\ProgramData\miniconda3\python.exe' demo.py
+.\run.ps1              # the demonstration
+.\run.ps1 -Test        # the checks only
+.\run.ps1 -All         # checks first, then the demonstration
 ```
 
-Checks:
+Either launcher works from any folder — it switches to its own directory so the
+imports resolve — and finds a working Python for itself. It verifies a candidate
+interpreter actually runs before using it, because a bare `python` on this machine
+resolves to a manager with no configured runtime. If the checks fail, the
+demonstration is skipped and the exit code is 1.
+
+`run.cmd` exists because double-clicking a `.ps1` opens it in Notepad rather than
+running it, and the execution policy usually blocks unsigned scripts. It passes its
+arguments through, so `run.cmd -All` works too.
+
+To bypass the launchers entirely:
 
 ```powershell
+& 'C:\ProgramData\miniconda3\python.exe' demo.py
 & 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_demo.py
 ```
 
@@ -79,6 +95,8 @@ case a reservation it previously had. Both are asserted rather than assumed.
 | `scenario.py` | The fictional five-day demand |
 | `demo.py` | Prints the report |
 | `test_demo.py` | 10 checks on the claims above |
+| `run.ps1` | Launcher: finds Python, runs the demo and/or the checks |
+| `run.cmd` | Double-clickable wrapper around `run.ps1` |
 
 ## Honest limits
 
