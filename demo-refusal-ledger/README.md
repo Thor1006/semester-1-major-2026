@@ -40,6 +40,12 @@ To bypass the launchers entirely:
 
 ## The application
 
+It follows `app.py`'s house style so it reads as a screen the project could grow:
+the native ttk theme with no custom styling, a `padding=24` content frame, one
+20pt bold heading, a `LabelFrame` of controls on the left and a `Notebook` of
+tables on the right, and no colour coding - every row states its kind in a column.
+It uses the project's own window sizes, 1220x750 and a 1160x720 minimum.
+
 Four tabs over the same data:
 
 | Tab | Shows |

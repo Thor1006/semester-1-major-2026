@@ -91,6 +91,15 @@ Newest first. One short entry per session: what changed, what was verified, what
   General medicine absorbs 0). Layout bounds were measured on every tab and the
   window now fits at both its default and its minimum size, which it did not at
   first - label wraplength was forcing a 1000px minimum width.
+- Restyled `ledger_app.py` to follow `app.py`'s conventions after the user asked for it:
+  removed the custom ttk.Style, theme_use and colour palette in favour of the native
+  theme; adopted the padding=24 content frame, the 20pt bold heading, the LabelFrame
+  left / Notebook right layout, the project's label and input spacing, its Treeview and
+  scrollbar wiring, its confirmation messagebox, and its 1220x750 / 1160x720 window
+  sizes. Colour coding was dropped: each row now names its kind in a column instead.
+  Column widths had to be trimmed twice to fit the project's narrower minimum window;
+  measured on every tab, it now needs 1149x604 and fits both sizes. Rendered values are
+  unchanged and the 10 checks still pass.
 - `AGENTS.md` remains unedited and the proposal remains unadopted. No project code changed.
 
 ### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written
