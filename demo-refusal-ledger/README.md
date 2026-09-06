@@ -15,9 +15,10 @@ console report. Same demonstration, two faces.
 From a terminal, `run.ps1` takes switches:
 
 ```powershell
-.\run.ps1              # the demonstration
+.\run.ps1 -Gui         # the Tkinter application
+.\run.ps1              # the console report
 .\run.ps1 -Test        # the checks only
-.\run.ps1 -All         # checks first, then the demonstration
+.\run.ps1 -All         # checks first, then the console report
 ```
 
 Either launcher works from any folder — it switches to its own directory so the
