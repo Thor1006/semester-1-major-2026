@@ -1,8 +1,0 @@
-{
-  "source": "SIMULATED DATA ONLY",
-  "training_rows": 320,
-  "test_rows": 80,
-  "first_test_date": "2026-08-21",
-  "tree_mae_minutes": 1.9570854166666667,
-  "ward_median_mae_minutes": 5.739125
-}

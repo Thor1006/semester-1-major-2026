@@ -57,6 +57,31 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Machine learning removed
+
+- The user asked for the machine-learning part to be cut out. Deleted `duration_model.py`,
+  `train_assignment.py`, `test_duration_model.py`, the simulated `data/` history,
+  `artifacts/`, and the scikit-learn `requirements.txt`.
+- `assignment.py`: `assign_patient` lost its `model` parameter, the scoring loops, and the
+  `estimate_duration`/`math` imports. It now takes the first compatible free room and
+  doctor in configured order and returns only `room_id` and `doctor_id`.
+- `app.py`: no longer imports or loads a model. The button reads "Assign selected case"
+  again and the message states the rule instead of candidate estimates.
+- `AGENTS.md` *Current state* records the removal and says NOT to re-add duration
+  prediction or a scikit-learn dependency without the user explicitly asking. The
+  *Machine learning* rules section was left in place as guidance if it ever returns; the
+  user has not said whether ML is out of scope permanently.
+- `README.md` and `LEARNING.md` lost their ML status, setup, commands and walkthrough.
+  Three stale claims in the surviving lesson 3 notes were corrected: the roadmap row, a
+  pointer to the deleted ML section, and a description of `room = None`/`break` that no
+  longer matched the code.
+- Verified: 16 tests pass under the base interpreter with no virtual environment; `app.py`
+  imports, builds its window and exposes the new button text; the lesson 3 trace table was
+  re-checked against a live run and still matches (R01-1/D01-1, then R01-2/D01-2, third
+  waits).
+- `.venv` was left on disk. Nothing uses it now; it is the user's to delete.
+- Recoverable from git history if ML is ever wanted back.
+
 ### 2026-09-08 — Claude Code (Opus 5) — Refusal-ledger work removed
 
 - The user reported that their teacher identified the refusal ledger as a direction that
