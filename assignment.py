@@ -91,6 +91,11 @@ def check_case_is_assignable(record, assignments, today=None):
     if queue_id in assignments:
         raise ValueError(f'{queue_id} already has an assignment.')
 
+    # A finished visit must not take a room again. .get() is used because a
+    # record written before the lifecycle existed has no status key at all.
+    if record.get('status') == 'completed':
+        raise ValueError(f'{queue_id} is already marked done.')
+
     # A reservation means NOW. Later dates must not consume today's resources.
     # The optional today parameter allows repeatable tests with a known date.
     # Passing no date uses the local computer's calendar date.
@@ -99,6 +104,20 @@ def check_case_is_assignable(record, assignments, today=None):
     if record['appointment_date'] != today.isoformat():
         raise ValueError('Only appointments dated today can receive an immediate assignment.')
     return record['destination_ward']
+
+
+def release_reservation(queue_id, assignments):
+    """Free whatever room and doctor a case was holding.
+
+    Returns the released reservation, or None if it held nothing. This is the
+    step the project lacked from lesson 3 until now: a room could be reserved
+    but never given back, so resources drained away until the app was closed.
+    Completing a visit is the first thing that calls it.
+
+    Availability is derived from `assignments`, so removing the entry IS the
+    release. There is no second busy flag anywhere that could disagree.
+    """
+    return assignments.pop(queue_id, None)
 
 
 def available_resources(ward, rooms, doctors, assignments):
@@ -226,6 +245,9 @@ def auto_assign(records, rooms, doctors, assignments, today=None):
         else:
             reference = today
         if record['appointment_date'] != reference.isoformat():
+            continue
+        # A finished visit is not part of the waiting list either.
+        if record.get('status') == 'completed':
             continue
         try:
             assigned.append((queue_id, assign_patient(record, rooms, doctors,

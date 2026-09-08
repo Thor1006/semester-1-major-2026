@@ -42,6 +42,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Implemented and checked, 2026-09-08: bulk CSV import, deleting one registration, clearing all of them, and a double-click details window. Your practice for this step is pending.
 - Implemented and checked, 2026-09-08: configurable capacity per ward, saved between runs, with reductions refused when they would delete a reserved resource; and taking an individual room or doctor out of service. Your practice for this step is pending.
 - Implemented and checked, 2026-09-08: manual assignment of a chosen room and doctor, and automatic assignment of every waiting case in arrival order. Your practice for this step is pending.
+- Implemented and checked, 2026-09-08: marking a case done, which releases its room and doctor and archives the record. This is roadmap lesson 5's release step, built early. Your practice for this step is pending.
 - No hardware checks are complete.
 
 ## First lesson's target
@@ -672,3 +673,107 @@ lifecycle the project still lacks.
 your exercise) and no completion step, so a room stays held until the app closes.
 Assignment remains same-day and immediate: no time slots, no shifts, no clinical urgency.
 Auto-assign has no preview --- it applies immediately rather than proposing a plan.
+
+
+### Lesson 5, early: finishing a case and giving the room back
+
+**Status:** implemented and checked; practice pending. Read `release_reservation` in
+`assignment.py`, `migrate` and `set_case_status` in `storage.py`, then `mark_done` in
+`app.py`.
+
+Since lesson 3 the project could reserve a room but never give it back. Resources drained
+away until the app was closed, which meant the second half of every clinic day was
+fictional. **Mark done** is the missing half.
+
+**Releasing is a deletion, not a flag.** Availability has always been DERIVED from the
+`assignments` dictionary rather than stored on each resource, and that decision pays off
+here:
+
+```python
+def release_reservation(queue_id, assignments):
+    return assignments.pop(queue_id, None)
+```
+
+That is the entire release. Removing the entry IS the release, because nothing else records
+occupancy. Had rooms carried their own `busy` flag, this function would have had to update
+two places and could have left them disagreeing.
+
+**Archive, do not delete.** A finished case is still a fact worth keeping: it happened. So
+`status` becomes `'completed'`, `completed_at` records when, and the row stays in the
+database. The queue hides it, because the queue is a list of work still to do, and the
+Show completed checkbox brings it back. Deleting would destroy the record; archiving keeps
+it and gets it out of the way.
+
+**There is no reopen, on purpose.** By the time somebody notices a mistake, the freed room
+may already belong to another patient, so putting the old reservation back could double-book
+it. Rather than pretend otherwise, the confirmation names exactly what is about to be freed
+before anything happens. Refusing to offer an unsafe undo is a better answer than offering
+one that sometimes corrupts the schedule.
+
+**The migration: the trap from lesson 6, met for real.** Adding `status` and `completed_at`
+meant changing a table that already existed on your computer. As lesson 6 warned,
+`CREATE TABLE IF NOT EXISTS` does NOTHING to an existing table, so the new columns would
+simply have been missing and the app would have failed with a confusing complaint.
+
+`migrate` is the honest fix:
+
+```python
+existing = {row['name'] for row in connection.execute('PRAGMA table_info(registrations)')}
+if 'status' not in existing:
+    connection.execute("ALTER TABLE registrations ADD COLUMN status TEXT NOT NULL DEFAULT 'waiting'")
+```
+
+`PRAGMA table_info` asks the database what shape it really is. Only the missing changes are
+applied, so running it at every startup is safe. `ADD COLUMN` needs a DEFAULT when the column
+is `NOT NULL`, because the rows already there must be given some value --- and treating every
+pre-lifecycle case as still waiting is true. `completed_at` is nullable, because a case that
+has not finished has no finishing time, and `NULL` says that where an empty string would
+quietly lie.
+
+There are tests that build a database in the OLD shape, insert a patient, then open it with
+the current code and check the patient is still there. That is the check that matters: a
+migration nobody tested against real old data is a hope, not a migration.
+
+**Old records must not crash new code.** `record.get('status')` is used rather than
+`record['status']`, so a dictionary written before the lifecycle existed is treated as
+waiting instead of raising `KeyError`. The same care appears in `auto_assign`, which skips
+completed cases without treating them as failures --- a finished visit is not a case that
+could not be served.
+
+**Trace a completed visit.**
+
+| Step | What happens |
+| --- | --- |
+| Three cases arrive; two rooms exist | auto-assign serves the first two, the third waits |
+| You select the first and click Mark done | the confirmation names `R01-1` and `D01-1` |
+| You confirm | `release_reservation` pops the entry; the room and doctor are free again |
+| | `set_case_status` writes `completed` and the time |
+| | the row leaves the queue and the resource tab shows both as Available |
+| You click Auto-assign all | the third case takes the freed `R01-1 / D01-1` |
+| You restart the app | the finished case is still archived, still hidden, still done |
+
+**Your practice exercise.** Add a **Cancel** action for a case that will not happen at all ---
+a no-show, or a patient who leaves. **Hint:** it is `mark_done` with a different status
+value. Add `CANCELLED = 'cancelled'` to `storage.py`, allow it in `set_case_status`, and
+decide how `assignment_text` should display it. Two questions worth answering first: should
+cancelling release the room (yes --- why?), and should a cancelled case be hidden by the same
+checkbox as a completed one, or by its own? `AGENTS.md` lists both states in the intended
+lifecycle.
+
+**Common mistakes**
+
+| Mistake | Consequence | Correct approach here |
+| --- | --- | --- |
+| Marking done without releasing | The room stays held by a patient who has gone home. | Release, then record the status. |
+| Deleting the case instead of archiving | The record of the visit is destroyed. | Set a status; keep the row. |
+| Adding a column to SCHEMA only | Existing databases silently keep the old shape. | Add it in `migrate` as well. |
+| `ADD COLUMN ... NOT NULL` with no DEFAULT | SQLite refuses: existing rows have no value. | Give a default that is true of old rows. |
+| `record['status']` on an old record | `KeyError` on data written before the lifecycle. | `record.get('status')`. |
+| Offering reopen | The freed room may already be double-booked. | Confirm clearly beforehand instead. |
+| Reporting completed cases as "waiting" in auto-assign | Staff chase cases that are already finished. | Skip them without counting them as failures. |
+
+**Current limits to remember.** There is still no `cancelled` state (that is your exercise)
+and no in-progress state, so a case jumps straight from waiting to done. Which room a
+finished case actually used is not recorded --- the reservation is released and forgotten, so
+the archive says when a visit ended but not where it happened. Completion is manual: nothing
+detects that a session has finished, which is what the ESP32 button in lesson 7 is for.

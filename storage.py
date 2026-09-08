@@ -3,11 +3,13 @@
 Until now every registration lived in a Python list and disappeared when the
 window closed. This module gives the project its first PERSISTENT MEMORY.
 
-WHAT IS SAVED, AND WHAT IS NOT. Registrations only. Room and doctor
-reservations deliberately stay in memory, because nothing in the project can
-yet END a reservation: there is no session completion or release step. A saved
-reservation would come back tomorrow still holding a room, with no way to free
-it. Persisting it would look like a feature and behave like a bug.
+WHAT IS SAVED, AND WHAT IS NOT. Registrations, their lifecycle status, the
+configured capacity, and which resources are out of service. Room and doctor
+RESERVATIONS deliberately stay in memory: they mean "right now", and a
+reservation restored tomorrow morning would hold a room for a visit that
+already happened. Marking a case done releases its resources and records that
+it finished, which is the durable fact worth keeping; the reservation itself is
+not.
 
 WHY SQLite. It is part of Python's standard library, so no new dependency is
 needed, and the whole database is one ordinary file you can delete. A plain
@@ -59,6 +61,8 @@ CREATE TABLE IF NOT EXISTS registrations (
     phone_number        TEXT NOT NULL,
     destination_ward    TEXT NOT NULL,
     ward_code           TEXT NOT NULL,
+    status              TEXT NOT NULL DEFAULT 'waiting',
+    completed_at        TEXT,
     UNIQUE (appointment_date, queue_id)
 );
 
@@ -75,7 +79,13 @@ CREATE TABLE IF NOT EXISTS disabled_resources (
 
 # The fields we read back out, in the order create_patient_record produces them.
 FIELDS = ('queue_id', 'patient_name', 'medical_information', 'appointment_date',
-          'phone_number', 'destination_ward', 'ward_code')
+          'phone_number', 'destination_ward', 'ward_code', 'status', 'completed_at')
+
+# The two lifecycle states a case can be in. 'waiting' covers everything before
+# the appointment happens, whether or not a room has been reserved; 'completed'
+# means the visit is over and its resources have been released.
+WAITING = 'waiting'
+COMPLETED = 'completed'
 
 
 def connect(path=None):
@@ -95,7 +105,39 @@ def connect(path=None):
     # means this is safe to run at every startup, not only the first one.
     connection.executescript(SCHEMA)
     connection.commit()
+    migrate(connection)
     return connection
+
+
+def migrate(connection):
+    """Add columns that were introduced after a database was first created.
+
+    This is the answer to a trap worth understanding. `CREATE TABLE IF NOT
+    EXISTS` does NOTHING when the table already exists, even if the SCHEMA text
+    above has since gained a column. A database made yesterday therefore keeps
+    yesterday's shape, and today's code fails with a confusing complaint about a
+    missing column. Deleting the file "fixes" it and throws away every patient.
+
+    A MIGRATION is the real answer: look at the database as it actually is, and
+    make only the changes it still needs. This one is deliberately tiny - real
+    projects keep an ordered, numbered list of such steps - but it is enough to
+    let an existing clinic.db gain the lifecycle columns without losing data.
+    """
+    # PRAGMA table_info lists the columns a table really has right now.
+    existing = {row['name'] for row in
+                connection.execute('PRAGMA table_info(registrations)')}
+
+    # ALTER TABLE ADD COLUMN needs a DEFAULT when the column is NOT NULL,
+    # because existing rows have to be given some value. Every case that
+    # predates the lifecycle is treated as still waiting, which is true.
+    if 'status' not in existing:
+        connection.execute("ALTER TABLE registrations ADD COLUMN status TEXT"
+                           " NOT NULL DEFAULT 'waiting'")
+    if 'completed_at' not in existing:
+        # Nullable: a case that has not finished has no finishing time, and
+        # NULL says that honestly where an empty string would not.
+        connection.execute('ALTER TABLE registrations ADD COLUMN completed_at TEXT')
+    connection.commit()
 
 
 def save_registration(connection, record):
@@ -108,11 +150,12 @@ def save_registration(connection, record):
         connection.execute(
             'INSERT INTO registrations'
             ' (appointment_date, queue_id, patient_name, medical_information,'
-            '  phone_number, destination_ward, ward_code)'
-            ' VALUES (?, ?, ?, ?, ?, ?, ?)',
+            '  phone_number, destination_ward, ward_code, status, completed_at)'
+            ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             (record['appointment_date'], record['queue_id'], record['patient_name'],
              record['medical_information'], record['phone_number'],
-             record['destination_ward'], record['ward_code']))
+             record['destination_ward'], record['ward_code'],
+             record.get('status', WAITING), record.get('completed_at')))
     except sqlite3.IntegrityError as error:
         # This fires when the UNIQUE rule is broken. Turning it into ValueError
         # keeps SQLite's vocabulary out of the rest of the program: app.py
@@ -135,7 +178,7 @@ def load_registrations(connection):
     # makes no promise about row order at all.
     rows = connection.execute(
         'SELECT queue_id, patient_name, medical_information, appointment_date,'
-        ' phone_number, destination_ward, ward_code'
+        ' phone_number, destination_ward, ward_code, status, completed_at'
         ' FROM registrations ORDER BY row_id').fetchall()
     # A LIST COMPREHENSION over the rows, building one dictionary per row.
     # dict(zip(...)) pairs each field name with the matching column value.
@@ -155,11 +198,12 @@ def save_many(connection, records):
             connection.executemany(
                 'INSERT INTO registrations'
                 ' (appointment_date, queue_id, patient_name, medical_information,'
-                '  phone_number, destination_ward, ward_code)'
-                ' VALUES (?, ?, ?, ?, ?, ?, ?)',
+                '  phone_number, destination_ward, ward_code, status, completed_at)'
+                ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [(r['appointment_date'], r['queue_id'], r['patient_name'],
                   r['medical_information'], r['phone_number'],
-                  r['destination_ward'], r['ward_code']) for r in records])
+                  r['destination_ward'], r['ward_code'],
+                  r.get('status', WAITING), r.get('completed_at')) for r in records])
     except sqlite3.IntegrityError as error:
         raise ValueError(
             'The import contains a ticket already saved for its date. '
@@ -197,6 +241,25 @@ def count_registrations(connection):
     """How many registrations are stored. Used for the startup message."""
     # fetchone() returns the single result row; [0] is its first column.
     return connection.execute('SELECT COUNT(*) FROM registrations').fetchone()[0]
+
+
+
+def set_case_status(connection, appointment_date, queue_id, status, completed_at=None):
+    """Mark one case completed, or put it back to waiting.
+
+    Both halves of the key are required, because a ticket alone can name a
+    different day's patient.
+    """
+    if status not in (WAITING, COMPLETED):
+        raise ValueError(f'Unknown case status: {status!r}.')
+    cursor = connection.execute(
+        'UPDATE registrations SET status = ?, completed_at = ?'
+        ' WHERE appointment_date = ? AND queue_id = ?',
+        (status, completed_at, appointment_date, queue_id))
+    connection.commit()
+    # rowcount is 0 when the record was not there, which the caller may want to
+    # report rather than treat as success.
+    return cursor.rowcount > 0
 
 
 # --------------------------------------------------------------- capacity

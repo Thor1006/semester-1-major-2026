@@ -8,7 +8,7 @@ lessons/lesson_01.py. Lesson 2 is preserved in lessons/lesson_02/.
 # tkinter controls the window, ttk provides themed widgets, and messagebox
 # retains your confirmation popup. date supplies the default appointment date.
 import tkinter as tk
-from datetime import date
+from datetime import date, datetime
 # filedialog asks the operating system for a file, so we never build a path by
 # hand or guess where the user keeps their spreadsheet.
 from tkinter import filedialog, messagebox, ttk
@@ -18,7 +18,8 @@ from tkinter import filedialog, messagebox, ttk
 from registration import WARD_CODES, create_patient_record
 from assignment import (DEFAULT_CAPACITY, MAX_PER_WARD, assign_patient,
                         assign_patient_to, auto_assign, available_resources,
-                        blocking_reservations, make_demo_resources)
+                        blocking_reservations, make_demo_resources,
+                        release_reservation)
 from bulk_import import REQUIRED_COLUMNS, read_import_file
 import storage
 
@@ -41,9 +42,10 @@ disabled_resources = storage.load_disabled_resources(database)
 
 # Unpack the two lists returned by the factory. The separate dictionary maps
 # queue IDs to reservations; its presence/absence defines reserved/waiting state.
-# Reservations are deliberately NOT saved: nothing can end one yet, so a
-# restored reservation would hold a room forever. Every loaded case therefore
-# starts as Waiting.
+# Reservations are deliberately NOT saved: they mean "right now", so one
+# restored tomorrow morning would hold a room for a visit that already
+# happened. What IS saved is the lifecycle status, so a case marked done stays
+# done. Every loaded case that is not finished starts as Waiting.
 rooms, doctors = make_demo_resources(capacity, disabled_resources)
 assignments = {}
 
@@ -178,6 +180,11 @@ queue_scroll.grid(row=1, column=1, sticky='ns')
 queue_table.configure(yscrollcommand=queue_scroll.set)
 
 
+def is_completed(record):
+    """Has this visit been marked done? .get() covers pre-lifecycle records."""
+    return record.get('status') == storage.COMPLETED
+
+
 def assignment_text(record):
     """What the Assignment column should say for one record.
 
@@ -185,14 +192,26 @@ def assignment_text(record):
     today's cases can hold one. The date check stops an identical ticket on
     another date borrowing today's reservation for display.
     """
+    if is_completed(record):
+        return 'Done'
     reservation = assignments.get(record['queue_id'])
     if reservation and record['appointment_date'] == date.today().isoformat():
         return f"{reservation['room_id']} / {reservation['doctor_id']}"
     return 'Waiting'
 
 
-def add_queue_row(record):
-    """Put one registration in the table and scroll it into view.
+def is_visible(record):
+    """Should this case appear in the queue table right now?
+
+    Finished cases are hidden by default so the queue shows work still to do.
+    They are archived, not deleted: the checkbox brings them back, and they stay
+    in the database either way.
+    """
+    return show_completed.get() or not is_completed(record)
+
+
+def add_queue_row(record, scroll=True):
+    """Put one registration in the table.
 
     Used both for cases loaded from the database at startup and for cases
     registered while the app is open, so a restored row is built by exactly the
@@ -204,8 +223,18 @@ def add_queue_row(record):
         values=(record['queue_id'], record['destination_ward'],
                 record['appointment_date'], assignment_text(record)),
     )
-    # see scrolls the row into view if the table has become longer.
-    queue_table.see(row_key(record))
+    # see scrolls the row into view if the table has become longer. Rebuilding
+    # the whole table skips it: scrolling once per row would be pointless work.
+    if scroll:
+        queue_table.see(row_key(record))
+
+
+def rebuild_queue_table():
+    """Redraw the whole table, honouring the completed-cases filter."""
+    queue_table.delete(*queue_table.get_children())
+    for record in patient_records:
+        if is_visible(record):
+            add_queue_row(record, scroll=False)
 
 
 def refresh_queue_assignments():
@@ -221,10 +250,14 @@ def refresh_queue_assignments():
             queue_table.set(key, 'assignment', assignment_text(record))
 
 
+# A BooleanVar holds a value Tkinter widgets can watch. It must exist before the
+# first call to is_visible, which is why it sits here rather than beside its
+# checkbox further down.
+show_completed = tk.BooleanVar(value=False)
+
 # Show everything read back from the database. Assignment state is not restored,
-# so each loaded case is Waiting again.
-for saved_record in patient_records:
-    add_queue_row(saved_record)
+# so each loaded case that is not finished is Waiting again.
+rebuild_queue_table()
 
 format_label = ttk.Label(
     queue_panel,
@@ -483,34 +516,43 @@ def show_details(event=None):
     reservation = assignments.get(record['queue_id'])
     # A reservation belongs to today's list only, so a same ticket on another
     # date must not appear to share it.
-    if reservation and record['appointment_date'] == date.today().isoformat():
-        assignment_text = f"{reservation['room_id']} / {reservation['doctor_id']}"
+    if is_completed(record):
+        current = 'Done - room and doctor were released'
+    elif reservation and record['appointment_date'] == date.today().isoformat():
+        current = f"{reservation['room_id']} / {reservation['doctor_id']}"
     else:
-        assignment_text = 'Waiting - no room or doctor reserved'
+        current = 'Waiting - no room or doctor reserved'
 
     fields = [('Patient name', record['patient_name']),
               ('Appointment date', record['appointment_date']),
               ('Destination ward', f"{record['destination_ward']} "
                                    f"(code {record['ward_code']})"),
               ('Phone number', record['phone_number']),
-              ('Assignment', assignment_text)]
+              ('Assignment', current)]
+    if is_completed(record):
+        fields.append(('Completed at', record.get('completed_at') or 'unknown'))
     for index, (label, value) in enumerate(fields, start=1):
         ttk.Label(body, text=label + ':').grid(row=index, column=0, sticky='nw',
                                                padx=(0, 12), pady=2)
         ttk.Label(body, text=value, wraplength=320).grid(row=index, column=1,
                                                          sticky='w', pady=2)
 
+    # Rows are counted from the fields actually shown. A completed case has one
+    # extra field, and hard-coded row numbers would put the notes box on top of
+    # it. The heading took row 0 and the fields started at row 1.
+    next_row = len(fields) + 1
+
     ttk.Label(body, text='Medical history / information:').grid(
-        row=6, column=0, columnspan=2, sticky='w', pady=(12, 4))
+        row=next_row, column=0, columnspan=2, sticky='w', pady=(12, 4))
     notes = tk.Text(body, height=6, width=52, wrap='word', font=('Segoe UI', 10))
-    notes.grid(row=7, column=0, columnspan=2, sticky='ew')
+    notes.grid(row=next_row + 1, column=0, columnspan=2, sticky='ew')
     notes.insert('1.0', record['medical_information'] or '(none recorded)')
     # state='disabled' makes the Text read-only. It must be set AFTER inserting,
     # because a disabled Text refuses insertions too.
     notes.configure(state='disabled')
 
     ttk.Button(body, text='Close', command=details.destroy).grid(
-        row=8, column=0, columnspan=2, sticky='ew', pady=(14, 0))
+        row=next_row + 2, column=0, columnspan=2, sticky='ew', pady=(14, 0))
     details.grab_set()
 
 
@@ -715,16 +757,68 @@ def auto_assign_all():
     assignment_message.config(text=text)
 
 
+def mark_done():
+    """Finish a visit: release its room and doctor, and archive the case.
+
+    This is the completion step the project has lacked since lesson 3. Until
+    now a reservation could be made but never given back, so resources drained
+    away until the app was closed. Releasing here is what lets the next patient
+    have the room.
+    """
+    record = selected_record()
+    if record is None:
+        assignment_message.config(text='Select the case to mark done first.')
+        return
+    if is_completed(record):
+        assignment_message.config(
+            text=f"{record['queue_id']} is already marked done.")
+        return
+
+    # Only today's cases can be holding a reservation, and reservations are
+    # keyed by ticket alone, so an identical ticket on another date must not
+    # release today's room. Same guard as deleting.
+    holds = (assignments.get(record['queue_id'])
+             if record['appointment_date'] == date.today().isoformat() else None)
+    freed = (f"{holds['room_id']} and {holds['doctor_id']} will be freed for the "
+             f'next patient.' if holds else 'It is not holding a room or doctor.')
+    if not messagebox.askyesno(
+            'Mark case done',
+            f"Mark {record['queue_id']} - {record['patient_name']} as done?\n\n"
+            f'{freed}\n\n'
+            'The record is archived, not deleted. It cannot be reopened here.'):
+        return
+
+    if holds:
+        release_reservation(record['queue_id'], assignments)
+    # isoformat with seconds is precise enough for an archive and stays
+    # readable. timespec drops the microseconds nobody wants to look at.
+    finished_at = datetime.now().isoformat(sep=' ', timespec='seconds')
+    storage.set_case_status(database, record['appointment_date'], record['queue_id'],
+                            storage.COMPLETED, finished_at)
+    # Update the in-memory record to match what was just written, so the list
+    # and the database cannot disagree without a restart.
+    record['status'] = storage.COMPLETED
+    record['completed_at'] = finished_at
+
+    rebuild_queue_table()
+    refresh_resources()
+    hidden = '' if show_completed.get() else ' It is hidden; tick Show completed to see it.'
+    assignment_message.config(
+        text=f"{record['queue_id']} marked done at {finished_at}.{hidden}")
+
+
 assign_row = ttk.Frame(queue_panel)
 assign_row.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(12, 0))
-for index in range(3):
+for index in range(4):
     assign_row.columnconfigure(index, weight=1)
 assign_button = ttk.Button(assign_row, text='Assign selected', command=assign_selected)
 assign_button.grid(row=0, column=0, sticky='ew', padx=(0, 4))
 manual_button = ttk.Button(assign_row, text='Choose room/doctor...', command=manual_assign)
 manual_button.grid(row=0, column=1, sticky='ew', padx=4)
 auto_button = ttk.Button(assign_row, text='Auto-assign all', command=auto_assign_all)
-auto_button.grid(row=0, column=2, sticky='ew', padx=(4, 0))
+auto_button.grid(row=0, column=2, sticky='ew', padx=4)
+done_button = ttk.Button(assign_row, text='Mark done', command=mark_done)
+done_button.grid(row=0, column=3, sticky='ew', padx=(4, 0))
 
 # A child frame keeps these four buttons on one row without giving the whole
 # queue panel four columns to align against.
@@ -748,6 +842,12 @@ queue_table.bind('<Double-1>', show_details)
 
 assignment_message = ttk.Label(queue_panel, text='Choose a case to reserve a compatible room and doctor.', wraplength=470)
 assignment_message.grid(row=5, column=0, columnspan=2, sticky='w', pady=(10, 0))
+
+# Finished cases are archived rather than deleted: hidden from the working
+# queue by default, still in the database, and brought back by this checkbox.
+ttk.Checkbutton(queue_panel, text='Show completed cases', variable=show_completed,
+                command=rebuild_queue_table).grid(row=6, column=0, columnspan=2,
+                                                  sticky='w', pady=(8, 0))
 refresh_resources()
 
 

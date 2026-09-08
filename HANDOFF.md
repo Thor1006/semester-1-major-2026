@@ -57,6 +57,41 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Finished cases: mark done and archive
+
+- The user asked for a button to archive or mark a case done. This is roadmap lesson 5's
+  RELEASE step, built early - since lesson 3 a room could be reserved but never given back.
+- `release_reservation` frees the room and doctor. It is one `assignments.pop`, because
+  availability was always derived from that dictionary rather than from a busy flag on each
+  resource; there is no second place that could disagree.
+- `status` and `completed_at` were added to registrations, and `storage.migrate` adds those
+  columns to a database that predates them. This is the trap documented in the lesson 6
+  walkthrough met for real: `CREATE TABLE IF NOT EXISTS` does nothing to an existing table.
+  ANY future column must be added in `migrate` too, not by telling the user to delete
+  `clinic.db`. Tests build a database in the OLD shape with a patient in it and confirm the
+  patient survives.
+- Completion is an ARCHIVE: the row stays, the queue hides it, and a Show completed
+  checkbox brings it back showing `Done`. There is deliberately no reopen - the freed room
+  may already belong to somebody else, so the confirmation names what will be freed instead.
+- `create_patient_record` now returns `status` and `completed_at`, so a loaded record still
+  has exactly the same shape as a fresh one. `record.get('status')` is used everywhere so
+  pre-lifecycle dictionaries do not raise.
+- A completed case cannot be assigned again, and `auto_assign` skips it WITHOUT counting it
+  as waiting - a finished visit is not a case that could not be served.
+- Fixed while here: the details window hard-coded grid rows 6-8, which a completed case's
+  extra field would have collided with; rows are now counted from the fields shown. Also
+  corrected two comments claiming nothing could end a reservation.
+- Verified: 110 tests pass (17 new in `test_lifecycle.py`, including four migration tests).
+  Driven through the widgets across two processes: the confirmation named the pair to be
+  freed, declining changed nothing, confirming released R01-1/D01-1 and hid the row, a
+  following auto-assign gave that exact pair to the waiting case, Show completed brought it
+  back as Done, marking twice was refused, the details window showed the finish time, and
+  after a restart the case was still archived with reservations empty. Bounds 969x693, fits
+  both window sizes.
+- Not built: a cancelled state (set as the practice exercise), an in-progress state, or any
+  record of WHICH room a finished case used - the reservation is released and forgotten.
+  Completion is manual; nothing detects that a session ended.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Manual and automatic assignment
 
 - The user asked for manual assignment and automatic assignment in arrival order. Both are

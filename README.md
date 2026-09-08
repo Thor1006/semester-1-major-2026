@@ -30,10 +30,19 @@ Three buttons sit under the queue table:
 - **Assign selected** takes the first compatible free room and doctor, in configured order.
 - **Choose room/doctor...** opens a chooser listing only the rooms and doctors that are actually available for that case's ward, so you can pick a specific pair. The rules still apply: you can override which pair is used, not whether it is legal.
 - **Auto-assign all** serves every waiting case dated today in **arrival order** - first come, first served - and reports how many were assigned and why the first blocked case could not be.
+- **Mark done** finishes a visit. The confirmation names the room and doctor that will be freed, and once done they are immediately available to the next patient.
 
 Arrival order means the order cases were registered, which is the order the queue table shows and the order they are reloaded from the database. **The random part of a ticket is not a position**: `Q0199` may well have arrived before `Q0102`.
 
 Auto-assign fills gaps; it never reshuffles work already done. A pair you chose by hand stays exactly as you set it, and a full ward does not stop a different ward being served.
+
+### Finished cases
+
+**Mark done** is how a visit ends. It releases the room and doctor so the next patient can have them, and records when the case finished.
+
+The case is **archived, not deleted**: it stays in the database, disappears from the working queue, and comes back with the **Show completed cases** checkbox, where it shows as `Done`. Its details window records the finishing time.
+
+There is no reopen. By the time you notice a mistake the freed room may already belong to somebody else, so restoring the old reservation could double-book it. The confirmation therefore names what is about to be freed before anything happens.
 
 ### Changing capacity
 
@@ -90,9 +99,9 @@ Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`
 Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py test_assignment_modes.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py test_assignment_modes.py test_lifecycle.py
 ```
 
-That runs 93 checks covering registration, queue IDs, assignment, saving, deleting, CSV import, capacity, and the manual and automatic assignment modes. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
+That runs 110 checks covering registration, queue IDs, assignment, saving, deleting, CSV import, capacity, the manual and automatic assignment modes, completion, and the database migration. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

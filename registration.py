@@ -126,4 +126,11 @@ def create_patient_record(name, information, date_text, phone, ward, records):
         'phone_number': normalized_phone,
         'destination_ward': ward,
         'ward_code': WARD_CODES[ward],
+        # Every case starts waiting. 'completed' is set when staff mark the
+        # visit finished, which also releases its room and doctor. Including
+        # both keys here means a record loaded from the database has exactly
+        # the same shape as a fresh one, so nothing downstream has to care
+        # where a record came from.
+        'status': 'waiting',
+        'completed_at': None,
     }
