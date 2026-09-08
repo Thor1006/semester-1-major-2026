@@ -21,7 +21,7 @@ Lesson 3 is runnable. Registration accepts patient name, optional medical inform
 
 `Q0147` means `Q` + ward `01` + random suffix `47`. `Q0107` and `Q0142` can coexist. Each example ward has two rooms and two doctors; their IDs, such as `R01-1` and `D01-1`, are separate from queue IDs. The ward names/codes in `registration.py` are editable examples.
 
-The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per running session. Different appointment dates do not reset that pool. A full pool produces a helpful error. Closing the app loses records and reservations and resets used IDs. Use fictional patient details for this lesson.
+The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per appointment date. Each date has its own pool, so a busy day cannot use up tomorrow's tickets. A full pool produces a helpful error naming the date. Because the pool is per date, the same ticket can appear again on a different day: `Q0147` on the 8th and `Q0147` on the 9th are different patients, and the date plus the ticket is what identifies a registration. Closing the app still loses records and reservations. Use fictional patient details for this lesson.
 
 These are immediate reservations for today; future time-slot scheduling, shifts, completion/release, persistence, clinical priority, and hardware are later work. Reservations remain until the app closes. The same ticket cannot be assigned twice, but there is no permanent patient identity to detect two registrations belonging to the same person. Staff choose the case; the random ticket does not establish priority.
 

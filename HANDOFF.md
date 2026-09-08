@@ -57,6 +57,28 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Ticket pool scoped to a date
+
+- Preparation for persistence, at the user's request. Building persistence first would have
+  been a trap: ticket uniqueness was checked against every record in memory, so once records
+  survived a restart, "100 per ward per session" would silently have become "100 per ward
+  ever". Confirmed by running it before changing anything.
+- `create_patient_record` now derives the used-ticket set only from records sharing the same
+  appointment date, and the full-pool error names the date instead of "this session".
+- The user chose this scoping over widening the suffix or adding a visible date prefix, so
+  the staff-facing `QWWRR` format is unchanged.
+- CONSEQUENCE FOR WHOEVER BUILDS PERSISTENCE: a ticket is no longer unique on its own.
+  `Q0147` may recur on another date. The primary key must be appointment date + ticket.
+  This is recorded in `AGENTS.md`, `README.md`, `LEARNING.md` and in the code comments.
+- The user also chose that the first persistence increment saves REGISTRATIONS ONLY.
+  Reservations stay in memory, because a saved reservation would hold a room with no
+  release lifecycle (roadmap lesson 5) able to free it.
+- Verified: 18 tests pass, including two new ones covering a full ward on one date still
+  accepting the next date, and the same ticket legitimately recurring on a different date.
+  An end-to-end run issued 100 tickets for 8 Sept, refused the 101st, and issued one for
+  9 Sept.
+- Persistence itself is NOT implemented. No database, schema, or file exists yet.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Machine learning removed
 
 - The user asked for the machine-learning part to be cut out. Deleted `duration_model.py`,

@@ -46,7 +46,7 @@ def generate_queue_id(ward_code, existing_ids):
     # Two random digits allow exactly 100 IDs per ward, regardless of room count.
     if not available_ids:
         raise ValueError(
-            f'Ward {ward_code} has used all 100 queue IDs in this session. '
+            f'Ward {ward_code} has used all 100 queue IDs for this appointment date. '
             'No patient was added. A larger ID format is needed for more cases.'
         )
 
@@ -101,9 +101,18 @@ def create_patient_record(name, information, date_text, phone, ward, records):
 
     # A SET stores distinct values and supports membership checks. Extract full
     # IDs from the records, not just ward prefixes. Q0107 does not block Q0142.
-    # Dates do not reset the pool, so the current list cannot show duplicate IDs
-    # even when appointments have different dates. Restarting does reset memory.
-    existing_ids = {record['queue_id'] for record in records}
+    #
+    # Uniqueness is scoped to ONE APPOINTMENT DATE. Each ward's pool of 100
+    # suffixes therefore refills every day. That matters because records are
+    # about to be saved to disk: if the pool spanned every date, a ward would
+    # run out permanently after 100 patients instead of after 100 in one day.
+    #
+    # The consequence to remember: a ticket is no longer unique on its own.
+    # Q0147 may legitimately appear again on another date, so anything storing
+    # or looking up a registration must key on the DATE PLUS the ticket.
+    # .get() is used because a caller may pass partial records in tests.
+    existing_ids = {record['queue_id'] for record in records
+                    if record.get('appointment_date') == appointment_date.isoformat()}
     queue_id = generate_queue_id(WARD_CODES[ward], existing_ids)
 
     # A dictionary represents one registration with named fields. isoformat()

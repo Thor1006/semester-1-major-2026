@@ -22,12 +22,42 @@ class RegistrationTests(unittest.TestCase):
         self.assertEqual(ids, {f'Q01{number:02d}' for number in range(100)})
 
     def test_full_ward_does_not_block_other_ward_or_mutate_records(self):
-        self.records.extend({'queue_id': f'Q01{number:02d}'} for number in range(100))
+        # The pool is scoped to one appointment date, so these stand-in records
+        # need the date they occupy.
+        self.records.extend({'queue_id': f'Q01{number:02d}',
+                             'appointment_date': '2026-09-06'} for number in range(100))
         with self.assertRaisesRegex(ValueError, 'all 100'):
             create_patient_record(**self.fields)
         self.assertEqual(len(self.records), 100)
         other = create_patient_record(**{**self.fields, 'ward': 'Pediatrics'})
         self.assertTrue(other['queue_id'].startswith('Q02'))
+
+    def test_a_full_ward_on_one_date_still_accepts_another_date(self):
+        """The pool refills daily, so saving records cannot exhaust a ward forever."""
+        self.records.extend({'queue_id': f'Q01{number:02d}',
+                             'appointment_date': '2026-09-06'} for number in range(100))
+        with self.assertRaisesRegex(ValueError, 'all 100'):
+            create_patient_record(**self.fields)
+        # Same ward, next day: a ticket is issued again.
+        tomorrow = create_patient_record(**{**self.fields, 'date_text': '2026-09-07'})
+        self.assertTrue(tomorrow['queue_id'].startswith('Q01'))
+        self.assertEqual(tomorrow['appointment_date'], '2026-09-07')
+
+    def test_a_ticket_may_repeat_on_a_different_date(self):
+        """Consequence of date scoping: the ticket alone is not a unique key."""
+        # Only one suffix is free on each date, so both draws are forced to Q0107.
+        for date_text in ('2026-09-06', '2026-09-07'):
+            self.records.extend(
+                {'queue_id': f'Q01{number:02d}', 'appointment_date': date_text}
+                for number in range(100) if number != 7)
+        first = create_patient_record(**{**self.fields, 'date_text': '2026-09-06'})
+        self.records.append(first)
+        second = create_patient_record(**{**self.fields, 'date_text': '2026-09-07'})
+        self.assertEqual(first['queue_id'], 'Q0107')
+        self.assertEqual(second['queue_id'], 'Q0107')
+        # Date plus ticket is what distinguishes them.
+        self.assertNotEqual((first['appointment_date'], first['queue_id']),
+                            (second['appointment_date'], second['queue_id']))
 
     def test_only_remaining_suffix_is_used(self):
         used = {f'Q01{number:02d}' for number in range(100) if number != 7}
