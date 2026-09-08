@@ -14,7 +14,6 @@ starting a session with different pictures of the project.
 | `AGENTS.md` | Durable project rules: scope, teaching method, scheduling constraints, ML and hardware boundaries, privacy limits. Coarse feature status in *Current state*. | Session-by-session narration. |
 | `LEARNING.md` | Lesson roadmap, lesson-by-lesson progress, teaching notes, exercises, common mistakes. | Project rules. |
 | `README.md` | What a newcomer runs and what currently works, with verified commands. | Planned features described as working. |
-| `INNOVATION.md` | A proposal for changing the project's objective, with the `AGENTS.md` amendments it would need. Unadopted proposals only. | Anything describing implemented behaviour. |
 | `HANDOFF.md` (this file) | The handoff protocol and an append-only log of what each session changed. | Any fact the files above already own. |
 
 When these disagree, `AGENTS.md` wins on rules and `LEARNING.md` wins on lesson progress.
@@ -58,65 +57,21 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
-### 2026-09-06 — Claude Code (Opus 5) — Refusal-ledger demo built
+### 2026-09-08 — Claude Code (Opus 5) — Refusal-ledger work removed
 
-- Added `demo-refusal-ledger/`, a runnable prototype of the `INNOVATION.md` proposal.
-  The user asked to see the idea working rather than described.
-- The folder is STANDALONE by design: it imports nothing from the project, so Codex can
-  keep editing `registration.py`, `assignment.py` and `duration_model.py` without
-  breaking it, and it cannot affect the lessons. It is a prototype, not a lesson.
-- Shows three wards shaped differently over five simulated days. General medicine is
-  doctor-bound with rooms idle; Pediatrics is room-bound with doctors idle. Counterfactual
-  replay reports that an extra room in General medicine absorbs zero refusals.
-- Verified: `python demo.py` produces the report, and `python -m unittest -v test_demo.py`
-  passes 10 checks, including replay exactness and the monotonicity property that adding a
-  resource never costs a case its reservation.
-- Two display bugs were found and fixed while building: outcomes keyed by case reference
-  hid a real assignment behind its later duplicate, and one count was unpadded.
-- Honest limit found while building, now documented in the demo and its README: with no
-  session completion/release, one doctor serves one case per day, so the demo resets
-  resources each morning and the absorbed counts are a floor. Release (roadmap lesson 5)
-  is a prerequisite for this measurement to be realistic. This was not obvious before
-  building it.
-- Added `run.ps1` and a double-clickable `run.cmd` to the demo folder. They resolve
-  their own directory, so they work from any location, and probe for an interpreter
-  that actually executes rather than trusting that `python` resolves to one. Verified
-  from unrelated directories in both modes, and the failure path was verified on a
-  throwaway copy with a deliberately broken test: checks fail, the demo is skipped,
-  exit code 1.
-- Added `ledger_app.py`, a Tkinter prototype of the proposal, plus `run-app.cmd` and a
-  `-Gui` switch on the launcher. Four tabs over the same clinic.py/replay.py core.
-  Verified headlessly: built, driven through every control, and torn down with no
-  exception; rendered values match the console demo (25 served, 25 unmet, +1 room in
-  General medicine absorbs 0). Layout bounds were measured on every tab and the
-  window now fits at both its default and its minimum size, which it did not at
-  first - label wraplength was forcing a 1000px minimum width.
-- Restyled `ledger_app.py` to follow `app.py`'s conventions after the user asked for it:
-  removed the custom ttk.Style, theme_use and colour palette in favour of the native
-  theme; adopted the padding=24 content frame, the 20pt bold heading, the LabelFrame
-  left / Notebook right layout, the project's label and input spacing, its Treeview and
-  scrollbar wiring, its confirmation messagebox, and its 1220x750 / 1160x720 window
-  sizes. Colour coding was dropped: each row now names its kind in a column instead.
-  Column widths had to be trimmed twice to fit the project's narrower minimum window;
-  measured on every tab, it now needs 1149x604 and fits both sizes. Rendered values are
-  unchanged and the 10 checks still pass.
-- `AGENTS.md` remains unedited and the proposal remains unadopted. No project code changed.
-
-### 2026-09-06 — Claude Code (Opus 5) — Innovation proposal written
-
-- Added `INNOVATION.md`: a proposal arguing that the project's objective should shift from
-  optimising a schedule to measuring unmet demand, with refusals recorded against their
-  binding constraint and replayed counterfactually against modified resources.
-- The user asked for a proposal and said the current `AGENTS.md` scope need not constrain
-  it. `AGENTS.md` was therefore NOT edited. The proposal lists six amendments it would
-  require and leaves them unapplied for the user to decide.
-- Added a row to the ownership table above so the new document has a defined owner.
-- Nothing was implemented and no application code changed. The proposal describes
-  behaviour that does not exist; do not treat any of it as built.
-- The observation it rests on was verified against the code: `assign_patient` in
-  `assignment.py` already computes the binding constraint on failure and discards it in a
-  message string.
-- Codex was mid-session on lesson 8 when this was written. Nothing Codex owns was touched.
+- The user reported that their teacher identified the refusal ledger as a direction that
+  would fail the project, and asked for it to be removed.
+- Deleted `demo-refusal-ledger/` in full and `INNOVATION.md`, the proposal that argued
+  for it. Removed the `INNOVATION.md` row from the ownership table above and the two
+  session-log entries describing that work.
+- Nothing in the project imported it. The demo folder was standalone by design, so no
+  application code, test, lesson, or document needed changing; verified by searching for
+  imports of its modules and for references to it outside its own folder.
+- Verified after removal: all 23 tests pass in the project `.venv`, and no reference to
+  the removed work remains outside git history.
+- The work is still recoverable from git history if the objection turns out to be
+  narrower than the whole idea. It was removed from the working tree, not from the
+  repository's past.
 
 ### 2026-09-06 — Codex — Simple ML assignment with simulated history
 
