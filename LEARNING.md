@@ -40,6 +40,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Preparation for lesson 6 (persistence), 2026-09-08: ticket uniqueness is now scoped to one appointment date, so each ward gets a fresh pool of 100 suffixes every day. Without this, saving records to disk would have capped a ward at 100 patients forever rather than 100 per day. The trade-off to remember: a ticket alone no longer identifies a registration, so the date plus the ticket is the key.
 - Implemented and checked, 2026-09-08: lesson 6 persistence. Registrations are saved to a local SQLite file and restored on startup; reservations are not. Built ahead of lessons 4 and 5 because you asked for it; time-slot scheduling and the release lifecycle are still missing. Your lesson 6 practice is pending.
 - Implemented and checked, 2026-09-08: bulk CSV import, deleting one registration, clearing all of them, and a double-click details window. Your practice for this step is pending.
+- Implemented and checked, 2026-09-08: configurable capacity per ward, saved between runs, with reductions refused when they would delete a reserved resource; and taking an individual room or doctor out of service. Your practice for this step is pending.
 - No hardware checks are complete.
 
 ## First lesson's target
@@ -452,3 +453,100 @@ that.
 to EDIT a saved registration --- only to delete it and enter it again. Import cannot update
 an existing patient, and it has no dry-run preview. Deleting is immediate and permanent;
 there is no undo and no archive of removed records, which a real clinic would need.
+
+
+### Lesson 6 extension: changing the capacity of the clinic
+
+**Status:** implemented and checked; practice pending. Read `make_demo_resources` and
+`blocking_reservations` in `assignment.py`, then the capacity functions in `storage.py`,
+then `apply_capacity` and `set_selected_resource` in `app.py`.
+
+Until now every ward had exactly two rooms and two doctors, written into a `range(1, 3)`
+that nothing could change. Capacity is the real constraint on how many patients a clinic
+can serve, so it belongs in the interface rather than in the source.
+
+**A default is not the same as zero.** `load_capacity` returns only the wards somebody has
+actually configured. A ward missing from the table has never been changed, so it uses
+`DEFAULT_CAPACITY`. Had we stored a row for every ward up front, adding a new ward to
+`WARD_CODES` later would give it no rooms and no doctors, and the bug would look like the
+new ward being broken rather than the storage being too eager.
+
+**Identity has to survive a change.** Resource IDs come from POSITION: `R01-3` is the third
+room of ward 01, always. Growing a ward from two rooms to three therefore adds `R01-3` and
+leaves `R01-1` and `R01-2` untouched, so a reservation pointing at `R01-1` still points at
+a real room afterwards. Had IDs been handed out in creation order, or renumbered on each
+rebuild, every existing reservation would quietly start referring to a different room.
+
+**Check before you shrink.** This is the important rule in the increment:
+
+```python
+blocked = blocking_reservations(ward, new_rooms, new_doctors, capacity, assignments)
+if blocked:
+    ...refuse, and name them...
+```
+
+Reducing capacity deletes resources from the end of the numbering. If one of those is
+reserved, the patient holding it would be left assigned to a room that no longer exists ---
+or, worse, silently unassigned with nothing on screen to say so. `AGENTS.md` requires that
+staff explicitly apply changes to existing assignments, so the interface refuses and names
+the resources in use. The same rule stops a reserved room being taken out of service.
+
+Notice this is the same shape as `assign_patient`: work out whether the whole change is
+possible, and only then change anything. A validation that runs halfway through a mutation
+is not a validation.
+
+**Replace lists in place.** `rebuild_resources` uses slice assignment:
+
+```python
+rooms[:] = new_rooms
+```
+
+not `rooms = new_rooms`. The list object was handed to `assign_patient`, and other code
+holds the same object. Rebinding the name inside a function would create a NEW list that
+only that function could see, and (without a `global` declaration) would not even change
+the module-level name. `rooms[:] = ...` empties and refills the object everyone shares.
+
+**Out of service is not the same as absent.** A room under maintenance still exists: its ID
+must stay taken so the next room added to that ward does not reuse it. That is why disabled
+resources live in their own table rather than being expressed as a smaller capacity number.
+`enabled` was already in the resource dictionaries from lesson 3 and displayed as
+Unavailable; this increment is what finally lets anything set it.
+
+**Spinbox contents are text.** A `ttk.Spinbox` can be typed into as well as clicked, so
+`int(rooms_spin.get())` can raise `ValueError`, and the range still has to be checked
+afterwards. Trusting a spinbox because it has arrows on it is a common way to meet a
+crash.
+
+**Trace a reduction that is refused.**
+
+| Step | What happens |
+| --- | --- |
+| Ward has 3 rooms; `R01-3` is reserved by a case | |
+| You set Rooms to 2 and click Apply | `apply_capacity` reads and range-checks the numbers |
+| `blocking_reservations` | works out that `R01-3` would be removed, and that it is reserved |
+| The result | nothing is saved, nothing is rebuilt, and the message names `R01-3` |
+| You delete or reassign that case, then retry | the list is empty, so the change is saved and applied |
+
+**Your practice exercise.** Add a **Reset capacity to default** button that returns the
+selected ward to two rooms and two doctors. **Hint:** it is `apply_capacity` with the
+numbers replaced by `DEFAULT_CAPACITY` --- and it must run the same `blocking_reservations`
+check, because resetting a ward from four rooms to two is a reduction like any other.
+Think about whether it should also put that ward's out-of-service resources back in
+service, and be able to say why you chose either way.
+
+**Common mistakes**
+
+| Mistake | Consequence | Correct approach here |
+| --- | --- | --- |
+| Storing a capacity row for every ward at startup | A ward added later gets zero of everything. | Store only what was configured; fall back to the default. |
+| Numbering resources by creation order | Existing reservations start pointing at different rooms. | Derive IDs from position. |
+| Shrinking without checking reservations | A patient is left holding a room that no longer exists. | Call `blocking_reservations` first and refuse. |
+| `rooms = new_rooms` inside a function | The shared list is untouched; assignment keeps using the old one. | `rooms[:] = new_rooms`. |
+| Expressing maintenance as lower capacity | The next room added reuses the ID of the broken one. | Keep out-of-service resources in their own table. |
+| `int(spinbox.get())` without a try | A typed value crashes the callback. | Catch `ValueError` and show a message. |
+
+**Current limits to remember.** Capacity is per ward, not per room type or per session ---
+there are no opening hours, shifts, or part-time doctors. A doctor still supports exactly
+one ward, even though the data structure holds a list. `MAX_PER_WARD` is an interface
+guard, not a hospital rule. Removing a ward entirely, or renaming one, still means editing
+`WARD_CODES` in the source.

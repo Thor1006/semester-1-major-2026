@@ -23,6 +23,16 @@ Registration accepts patient name, optional medical information, appointment dat
 
 **Reservations are not saved, only registrations.** Nothing in the project can end a reservation yet, so a restored one would hold a room with no way to free it. Every case therefore comes back as Waiting. The database file stays on this computer, is excluded from version control, and is never transmitted anywhere.
 
+### Changing capacity
+
+The **Rooms and doctors** tab configures how many rooms and doctors each ward has. Choose a ward, set the two numbers, and click **Apply**. The change is saved, so it survives a restart. Every ward starts with two of each.
+
+Growing a ward is always safe: resources are numbered by position, so adding a third room creates `R01-3` and leaves `R01-1` and `R01-2` exactly as they were. Reducing removes from the end.
+
+**A reduction that would delete a reserved room or doctor is refused**, naming the resources in use. Deal with those cases first. Silently dropping a reservation would leave a patient unassigned with nothing on screen to say so.
+
+The same tab takes an individual room or doctor **out of service** for maintenance. An out-of-service resource is never assigned, shows as Unavailable, and stays that way after a restart. A resource that is currently reserved cannot be taken out of service.
+
 ### Managing saved data
 
 Four controls sit under the queue table:
@@ -68,9 +78,9 @@ Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`
 Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py
 ```
 
-That runs 54 checks covering registration, queue IDs, assignment, saving, deleting, and CSV import. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
+That runs 74 checks covering registration, queue IDs, assignment, saving, deleting, CSV import, and capacity. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

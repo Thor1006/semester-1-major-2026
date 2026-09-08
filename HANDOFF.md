@@ -57,6 +57,42 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Configurable capacity
+
+- The user asked for a way to change the capacity of the whole system. Rooms and doctors
+  per ward are now configurable from the Rooms and doctors tab and saved between runs.
+- `make_demo_resources(capacity, disabled)` replaces the hard-coded `range(1, 3)`. Wards
+  absent from the mapping use `DEFAULT_CAPACITY`, so a ward added to `WARD_CODES` later
+  gets resources rather than none. Passing nothing still yields the original two-and-two,
+  so existing callers and tests are unaffected.
+- `blocking_reservations` is the safety rule: reducing capacity removes resources from the
+  END of the numbering, and the change is refused, by name, if any of them is reserved.
+  Same rule blocks taking a reserved resource out of service. Silently dropping a
+  reservation would leave a patient unassigned with nothing on screen to say so.
+- Resource IDs are positional (`R01-3` is the third room), so growing a ward never renames
+  an existing resource and existing reservations stay valid.
+- Out-of-service resources are stored in their own table, NOT as a smaller capacity number,
+  so a room under maintenance keeps its ID instead of it being reused by the next room.
+- `rebuild_resources` uses `rooms[:] = ...` rather than rebinding: `assign_patient` holds
+  the same list objects, so a rebind would leave it working from the old lists.
+- Updated an assertion I had written earlier that the database contained only a
+  `registrations` table. Three tables are now correct; the check still proves reservations
+  are not persisted.
+- Verified: 74 tests pass (20 new in `test_capacity.py`). The editor was also driven
+  through the real widgets across two processes: growing a ward let a third case be served,
+  shrinking onto reserved resources was refused and left the rooms intact, shrinking past
+  only free resources worked, non-numeric and out-of-range input were rejected, taking a
+  free room out of service made assignment skip it, re-enabling restored it, and both
+  capacity and out-of-service state survived a restart. Window bounds re-measured at
+  969x664; fits 1220x750 and 1160x720.
+- NOTE: the user had two `app.py` instances running from `.venv` during this session, which
+  is what created `clinic.db` in the project folder. Two instances share one database file
+  but keep separate in-memory queues, so they will not see each other's registrations until
+  restarted. The UNIQUE constraint still prevents a genuine duplicate.
+- Not built: opening hours, shifts, part-time doctors, per-session capacity, removing or
+  renaming a ward from the interface. A doctor still supports exactly one ward even though
+  the structure holds a list.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Import, delete and a details window
 
 - The user asked for bulk import, a way to delete data, and a popup showing a queue entry's

@@ -41,6 +41,14 @@ DATABASE_PATH = Path(__file__).resolve().parent / 'clinic.db'
 # row_id is a separate INTEGER PRIMARY KEY, which SQLite fills in automatically
 # and increments. It preserves the ORDER registrations arrived in, which the
 # queue table needs and which (date, ticket) alone could not tell us.
+# capacity records how many rooms and doctors each ward has. A ward missing
+# from the table falls back to the default in assignment.py, so a database made
+# before capacity existed still opens.
+#
+# disabled_resources records individual resources taken out of service. It is
+# kept separate from capacity on purpose: a room out for maintenance still
+# EXISTS, so its ID must stay reserved rather than being reused by the next
+# room added to that ward.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS registrations (
     row_id              INTEGER PRIMARY KEY,
@@ -52,6 +60,16 @@ CREATE TABLE IF NOT EXISTS registrations (
     destination_ward    TEXT NOT NULL,
     ward_code           TEXT NOT NULL,
     UNIQUE (appointment_date, queue_id)
+);
+
+CREATE TABLE IF NOT EXISTS capacity (
+    ward    TEXT PRIMARY KEY,
+    rooms   INTEGER NOT NULL,
+    doctors INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS disabled_resources (
+    resource_id TEXT PRIMARY KEY
 );
 """
 
@@ -179,3 +197,51 @@ def count_registrations(connection):
     """How many registrations are stored. Used for the startup message."""
     # fetchone() returns the single result row; [0] is its first column.
     return connection.execute('SELECT COUNT(*) FROM registrations').fetchone()[0]
+
+
+# --------------------------------------------------------------- capacity
+
+def load_capacity(connection):
+    """Return {ward: (rooms, doctors)} for every ward that has been configured.
+
+    Wards absent from the result simply have not been changed from the default;
+    the caller decides what that default is. Storing only what was actually
+    configured means a new ward added to WARD_CODES later picks up the default
+    instead of silently getting zero of everything.
+    """
+    rows = connection.execute('SELECT ward, rooms, doctors FROM capacity').fetchall()
+    return {row['ward']: (row['rooms'], row['doctors']) for row in rows}
+
+
+def save_capacity(connection, ward, rooms, doctors):
+    """Record one ward's capacity, replacing any previous figure for it."""
+    if rooms < 0 or doctors < 0:
+        raise ValueError('Capacity cannot be negative.')
+    # INSERT ... ON CONFLICT ... DO UPDATE is an "upsert": insert a new row, or
+    # update the existing one if this ward is already present. The alternative,
+    # DELETE then INSERT, briefly leaves the ward with no configuration at all.
+    connection.execute(
+        'INSERT INTO capacity (ward, rooms, doctors) VALUES (?, ?, ?)'
+        ' ON CONFLICT(ward) DO UPDATE SET rooms = excluded.rooms,'
+        ' doctors = excluded.doctors',
+        (ward, rooms, doctors))
+    connection.commit()
+
+
+def load_disabled_resources(connection):
+    """Return the set of resource IDs currently out of service."""
+    rows = connection.execute('SELECT resource_id FROM disabled_resources').fetchall()
+    return {row['resource_id'] for row in rows}
+
+
+def set_resource_enabled(connection, resource_id, enabled):
+    """Take one resource out of service, or put it back."""
+    if enabled:
+        connection.execute('DELETE FROM disabled_resources WHERE resource_id = ?',
+                           (resource_id,))
+    else:
+        # OR IGNORE makes disabling something already disabled a no-op rather
+        # than an error, so the caller does not have to check first.
+        connection.execute('INSERT OR IGNORE INTO disabled_resources (resource_id)'
+                           ' VALUES (?)', (resource_id,))
+    connection.commit()

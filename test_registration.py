@@ -182,9 +182,13 @@ class InterfaceTests(unittest.TestCase):
                 self.assertEqual(len(saved), 3)
                 self.assertEqual([item['queue_id'] for item in saved],
                                  [item['queue_id'] for item in app.patient_records])
-                tables = app.database.execute(
-                    "SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
-                self.assertEqual([row[0] for row in tables], ['registrations'])
+                # The point of this check is that RESERVATIONS are not stored
+                # anywhere. Capacity and out-of-service resources are saved on
+                # purpose; a table holding reservations would not be.
+                tables = {row[0] for row in app.database.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
+                self.assertEqual(tables,
+                                 {'registrations', 'capacity', 'disabled_resources'})
         finally:
             app.database.close()
             app.window.destroy()

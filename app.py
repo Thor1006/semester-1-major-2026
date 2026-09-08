@@ -16,7 +16,8 @@ from tkinter import filedialog, messagebox, ttk
 # Import our own module using its filename without .py. It owns validation and
 # ID generation; this file owns the visible interface and its event handling.
 from registration import WARD_CODES, create_patient_record
-from assignment import make_demo_resources, assign_patient
+from assignment import (DEFAULT_CAPACITY, MAX_PER_WARD, assign_patient,
+                        blocking_reservations, make_demo_resources)
 from bulk_import import REQUIRED_COLUMNS, read_import_file
 import storage
 
@@ -31,12 +32,18 @@ database = storage.connect()
 # generation, so yesterday's saved tickets are excluded from today's choices.
 patient_records = storage.load_registrations(database)
 
+# Capacity is configuration, so it is saved too. A ward missing from the table
+# has never been changed and uses the default, which is why a ward added to
+# WARD_CODES later starts with resources instead of none.
+capacity = storage.load_capacity(database)
+disabled_resources = storage.load_disabled_resources(database)
+
 # Unpack the two lists returned by the factory. The separate dictionary maps
 # queue IDs to reservations; its presence/absence defines reserved/waiting state.
 # Reservations are deliberately NOT saved: nothing can end one yet, so a
 # restored reservation would hold a room forever. Every loaded case therefore
 # starts as Waiting.
-rooms, doctors = make_demo_resources()
+rooms, doctors = make_demo_resources(capacity, disabled_resources)
 assignments = {}
 
 
@@ -216,7 +223,7 @@ result_label.grid(row=11, column=0, sticky='w', pady=(12, 0))
 # Availability is derived from assignments, so both views use the same state.
 resource_panel.columnconfigure(0, weight=1)
 resource_panel.rowconfigure(1, weight=1)
-ttk.Label(resource_panel, text='Example resources: two rooms and two doctors per ward.\nReservations last for this session; session completion comes later.', wraplength=480).grid(row=0, column=0, sticky='w', pady=(0, 14))
+ttk.Label(resource_panel, text='Configured capacity per ward. Reservations last for this session; session completion comes later.', wraplength=480).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 14))
 resource_table = ttk.Treeview(resource_panel, columns=('id', 'ward', 'state'), show='headings')
 for column, title, width in [('id', 'Resource', 85), ('ward', 'Ward(s)', 175), ('state', 'State', 180)]:
     resource_table.heading(column, text=title)
@@ -242,7 +249,138 @@ def refresh_resources():
             else:
                 state = 'Available'
             ward = resource['ward'] if kind == 'room_id' else ', '.join(resource['wards'])
-            resource_table.insert('', 'end', values=(resource['id'], ward, state))
+            # iid is the resource ID, so a selected row can be acted on without
+            # reading text back out of the display.
+            resource_table.insert('', 'end', iid=resource['id'],
+                                  values=(resource['id'], ward, state))
+
+
+# 4b. CAPACITY: how many rooms and doctors each ward actually has.
+capacity_box = ttk.LabelFrame(resource_panel, text='Capacity', padding=12)
+capacity_box.grid(row=2, column=0, columnspan=2, sticky='ew', pady=(14, 0))
+capacity_box.columnconfigure(6, weight=1)
+
+ttk.Label(capacity_box, text='Ward').grid(row=0, column=0, sticky='w', padx=(0, 6))
+capacity_ward = ttk.Combobox(capacity_box, values=list(WARD_CODES), state='readonly',
+                             width=18)
+capacity_ward.grid(row=0, column=1, padx=(0, 12))
+capacity_ward.set(list(WARD_CODES)[0])
+
+ttk.Label(capacity_box, text='Rooms').grid(row=0, column=2, sticky='w', padx=(0, 4))
+rooms_spin = ttk.Spinbox(capacity_box, from_=0, to=MAX_PER_WARD, width=4)
+rooms_spin.grid(row=0, column=3, padx=(0, 12))
+ttk.Label(capacity_box, text='Doctors').grid(row=0, column=4, sticky='w', padx=(0, 4))
+doctors_spin = ttk.Spinbox(capacity_box, from_=0, to=MAX_PER_WARD, width=4)
+doctors_spin.grid(row=0, column=5, padx=(0, 12))
+
+
+def show_ward_capacity(event=None):
+    """Load the chosen ward's current numbers into the two spinboxes."""
+    current_rooms, current_doctors = capacity.get(capacity_ward.get(), DEFAULT_CAPACITY)
+    # delete/insert rather than set(), so the box shows the stored value even if
+    # the user had typed something else and then switched wards.
+    rooms_spin.delete(0, 'end')
+    rooms_spin.insert(0, current_rooms)
+    doctors_spin.delete(0, 'end')
+    doctors_spin.insert(0, current_doctors)
+
+
+def rebuild_resources():
+    """Recreate the resource lists from the current capacity and disabled set.
+
+    The lists are replaced IN PLACE with rooms[:] = ... rather than rebound.
+    assign_patient was handed these exact list objects, so rebinding the names
+    here would leave it working from the old lists.
+    """
+    new_rooms, new_doctors = make_demo_resources(capacity, disabled_resources)
+    rooms[:] = new_rooms
+    doctors[:] = new_doctors
+    refresh_resources()
+
+
+def apply_capacity():
+    """Change one ward's capacity, refusing to delete a resource in use."""
+    ward = capacity_ward.get()
+    try:
+        # Spinbox contents are TEXT, and the user can type into it, so an
+        # invalid entry has to be caught rather than assumed away.
+        new_rooms = int(rooms_spin.get())
+        new_doctors = int(doctors_spin.get())
+    except ValueError:
+        capacity_message.config(text='Rooms and doctors must be whole numbers.')
+        return
+    if not (0 <= new_rooms <= MAX_PER_WARD and 0 <= new_doctors <= MAX_PER_WARD):
+        capacity_message.config(text=f'Enter values between 0 and {MAX_PER_WARD}.')
+        return
+
+    # Check BEFORE changing anything. Shrinking a ward onto a reserved room
+    # would otherwise delete a resource a patient is currently holding, and
+    # nothing would tell the staff member it had happened.
+    blocked = blocking_reservations(ward, new_rooms, new_doctors, capacity, assignments)
+    if blocked:
+        capacity_message.config(
+            text=f"Cannot reduce {ward}: {', '.join(sorted(blocked))} "
+                 f"{'is' if len(blocked) == 1 else 'are'} reserved. "
+                 f'Delete or reassign those cases first.')
+        return
+
+    storage.save_capacity(database, ward, new_rooms, new_doctors)
+    capacity[ward] = (new_rooms, new_doctors)
+    rebuild_resources()
+    capacity_message.config(
+        text=f'{ward} now has {new_rooms} room(s) and {new_doctors} doctor(s). Saved.')
+
+
+def set_selected_resource(enabled):
+    """Take the selected room or doctor out of service, or put it back."""
+    selected = resource_table.selection()
+    if not selected:
+        capacity_message.config(text='Select a room or doctor in the table first.')
+        return
+    resource_id = selected[0]
+
+    # A reserved resource is in use right now. Marking it unavailable would
+    # contradict the reservation shown next to it in the same table.
+    holder = next((queue_id for queue_id, reservation in assignments.items()
+                   if resource_id in (reservation['room_id'], reservation['doctor_id'])),
+                  None)
+    if holder and not enabled:
+        capacity_message.config(
+            text=f'{resource_id} is reserved by {holder}. Free it before taking it '
+                 f'out of service.')
+        return
+
+    storage.set_resource_enabled(database, resource_id, enabled)
+    if enabled:
+        disabled_resources.discard(resource_id)
+    else:
+        disabled_resources.add(resource_id)
+    rebuild_resources()
+    # The rebuild replaced every row, so restore the selection the user had.
+    if resource_table.exists(resource_id):
+        resource_table.selection_set(resource_id)
+    capacity_message.config(
+        text=f"{resource_id} is {'back in service' if enabled else 'out of service'}.")
+
+
+capacity_ward.bind('<<ComboboxSelected>>', show_ward_capacity)
+ttk.Button(capacity_box, text='Apply', command=apply_capacity).grid(
+    row=0, column=6, sticky='e')
+
+service_row = ttk.Frame(capacity_box)
+service_row.grid(row=1, column=0, columnspan=7, sticky='ew', pady=(10, 0))
+service_row.columnconfigure(0, weight=1)
+service_row.columnconfigure(1, weight=1)
+ttk.Button(service_row, text='Take selected out of service',
+           command=lambda: set_selected_resource(False)).grid(row=0, column=0,
+                                                              sticky='ew', padx=(0, 4))
+ttk.Button(service_row, text='Put selected back in service',
+           command=lambda: set_selected_resource(True)).grid(row=0, column=1,
+                                                             sticky='ew', padx=(4, 0))
+
+capacity_message = ttk.Label(resource_panel, text='', wraplength=480)
+capacity_message.grid(row=3, column=0, columnspan=2, sticky='w', pady=(10, 0))
+show_ward_capacity()
 
 
 def assign_selected():
@@ -258,6 +396,7 @@ def assign_selected():
         reservation = assign_patient(record, rooms, doctors, assignments)
     except ValueError as error:
         assignment_message.config(text=str(error))
+        messagebox.showwarning('Assignment failed', str(error))
         return
     # Only the visible cell changes. The reservation is not written to the
     # database: nothing can release it yet, so it lasts for this session only.
@@ -483,6 +622,7 @@ def add_case():
         # specific exception and show its message. Keep the input for correction.
         # The early return prevents creating a table row for invalid data.
         result_label.config(text=str(error))
+        messagebox.showwarning('Registration failed', str(error))
         return
 
     # append changes the EXISTING list; no global declaration is needed because

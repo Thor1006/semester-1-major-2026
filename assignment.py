@@ -8,20 +8,74 @@ from datetime import date
 from registration import WARD_CODES
 
 
-def make_demo_resources():
-    """Create fresh example resources: two rooms and two doctors for each ward."""
+# How many rooms and doctors a ward has if nothing else has been configured.
+DEFAULT_CAPACITY = (2, 2)
+
+# An upper bound on what the interface will configure. It is a guard against a
+# typed 900 filling the table with pretend resources, not a hospital rule.
+MAX_PER_WARD = 12
+
+
+def make_demo_resources(capacity=None, disabled=()):
+    """Create fresh resources for every ward.
+
+    capacity maps a ward name to a (rooms, doctors) pair. Wards missing from it
+    fall back to DEFAULT_CAPACITY, so old callers and tests that pass nothing
+    still get the original two-and-two demonstration.
+
+    disabled is a collection of resource IDs to mark unusable, which is how a
+    room out for maintenance survives a restart.
+    """
     # A factory function builds NEW lists/dictionaries every time it is called.
     # Tests can therefore start clean without sharing another test's resources.
+    capacity = capacity or {}
+    disabled = set(disabled)
     rooms = []
     doctors = []
     for ward, code in WARD_CODES.items():
-        # range(1, 3) yields 1 and 2. These are example resource IDs, distinct
+        room_count, doctor_count = capacity.get(ward, DEFAULT_CAPACITY)
+        # range(1, n + 1) yields 1..n. These are example resource IDs, distinct
         # from a patient's QWWRR ticket. More rooms can belong to the same ward.
-        for number in range(1, 3):
-            rooms.append({'id': f'R{code}-{number}', 'ward': ward, 'enabled': True})
-            doctors.append({'id': f'D{code}-{number}', 'wards': [ward], 'enabled': True})
+        #
+        # The NUMBERING MATTERS: a resource keeps its ID when capacity changes,
+        # because IDs are derived from position, not from insertion order. Going
+        # from two rooms to three adds R01-3 and leaves R01-1 and R01-2 exactly
+        # as they were, so an existing reservation still points at a real room.
+        for number in range(1, room_count + 1):
+            identifier = f'R{code}-{number}'
+            rooms.append({'id': identifier, 'ward': ward,
+                          'enabled': identifier not in disabled})
+        for number in range(1, doctor_count + 1):
+            identifier = f'D{code}-{number}'
+            doctors.append({'id': identifier, 'wards': [ward],
+                            'enabled': identifier not in disabled})
     # Return a pair of lists (a tuple). The caller can unpack: rooms, doctors = ...
     return rooms, doctors
+
+
+def blocking_reservations(ward, room_count, doctor_count, capacity, assignments):
+    """Reserved resource IDs that shrinking a ward would delete.
+
+    An empty list means the change is safe. A non-empty one means staff must
+    deal with those cases first: `AGENTS.md` requires that in-progress work is
+    not altered behind the user's back, and silently dropping a reservation
+    would leave a patient unassigned with nobody told.
+
+    Reducing capacity removes resources from the END of the numbering, so
+    going from three rooms to two removes R01-3 and never renames R01-1.
+    """
+    old_rooms, old_doctors = capacity.get(ward, DEFAULT_CAPACITY)
+    code = WARD_CODES[ward]
+    # range is empty when the new count is not smaller, so growing a ward
+    # produces no candidates for removal at all.
+    removed = [f'R{code}-{number}' for number in range(room_count + 1, old_rooms + 1)]
+    removed += [f'D{code}-{number}' for number in range(doctor_count + 1, old_doctors + 1)]
+
+    reserved = set()
+    for reservation in assignments.values():
+        reserved.add(reservation['room_id'])
+        reserved.add(reservation['doctor_id'])
+    return [identifier for identifier in removed if identifier in reserved]
 
 
 def assign_patient(record, rooms, doctors, assignments, today=None):
