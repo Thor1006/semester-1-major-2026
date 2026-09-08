@@ -57,6 +57,36 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Import, delete and a details window
+
+- The user asked for bulk import, a way to delete data, and a popup showing a queue entry's
+  information. All three are built.
+- New `bulk_import.py` reads a CSV and returns records. No Tkinter, no database: it is
+  testable on its own. ALL OR NOTHING - every row is validated before anything is written,
+  one bad row refuses the whole file, and problems are numbered as a spreadsheet shows them
+  (header is row 1). Tickets are generated, never read from the file. `sample_import.csv`
+  is a working example and is covered by a test, so it cannot rot.
+- `storage.py` gains `save_many` (one transaction, rolls back entirely on failure),
+  `delete_registration` (requires BOTH halves of the key) and `delete_all_registrations`.
+- `app.py` gains Details / Delete / Import CSV... / Clear all under the queue table, plus a
+  `<Double-1>` binding. Details is on double-click because single click selects, and
+  selecting is how a case is chosen for assignment or deletion.
+- Deleting releases any room and doctor the case held, conditional on the record being
+  today's. `assignments` is keyed by ticket alone, which is only safe because just today's
+  cases can hold one; without the date check, deleting another date's identical ticket
+  would free today's reservation. This is a trap the date-scoped tickets introduced.
+- Fixed a stale claim: the instructions label still said records stay in memory until the
+  window closes, which persistence made untrue.
+- Verified: 54 tests pass. The three features were also driven through the real widgets with
+  the dialogs mocked - import added 3 rows to table and database, a file with one bad row
+  changed nothing, cancelling did nothing, the details window showed name/phone/notes/pair
+  with a read-only notes box, a declined delete kept the record, an accepted delete removed
+  it from all three places and freed its two resources, and Clear all emptied everything.
+  Window bounds re-measured: 969x664, fits 1220x750 and 1160x720.
+- The test suite was re-checked for database pollution: no `clinic.db` is created by it.
+- Not built: export, editing a saved registration, import preview or update-existing, undo,
+  or any archive of deleted records. Deleting is immediate and permanent.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Persistence built (lesson 6)
 
 - The user asked to build persistence. Added `storage.py` (SQLite) and `test_storage.py`,

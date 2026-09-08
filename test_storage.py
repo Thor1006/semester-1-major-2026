@@ -138,6 +138,82 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(storage.load_registrations(self.connection)[0]['patient_name'],
                          "O'Brien Test-Patient")
 
+    def test_deleting_removes_only_the_named_registration(self):
+        records = []
+        for _ in range(3):
+            record = self.make(records)
+            records.append(record)
+            storage.save_registration(self.connection, record)
+        target = records[1]
+
+        self.assertTrue(storage.delete_registration(
+            self.connection, target['appointment_date'], target['queue_id']))
+        remaining = [r['queue_id'] for r in storage.load_registrations(self.connection)]
+        self.assertEqual(remaining, [records[0]['queue_id'], records[2]['queue_id']])
+
+    def test_deleting_needs_both_halves_of_the_key(self):
+        """A ticket alone could otherwise remove a different day's patient."""
+        keep = dict(self.make([]), queue_id='Q0147', appointment_date='2026-09-08')
+        other = dict(keep, appointment_date='2026-09-09')
+        storage.save_registration(self.connection, keep)
+        storage.save_registration(self.connection, other)
+
+        storage.delete_registration(self.connection, '2026-09-09', 'Q0147')
+        left = storage.load_registrations(self.connection)
+        self.assertEqual(len(left), 1)
+        self.assertEqual(left[0]['appointment_date'], '2026-09-08')
+
+    def test_deleting_something_absent_reports_false(self):
+        self.assertFalse(storage.delete_registration(self.connection, '2026-09-08', 'Q0199'))
+
+    def test_a_deleted_ticket_becomes_available_again(self):
+        """Deleting frees the suffix for that date, so the pool is not leaked."""
+        records = []
+        for _ in range(100):
+            record = self.make(records)
+            records.append(record)
+            storage.save_registration(self.connection, record)
+        freed = records[40]
+        storage.delete_registration(self.connection, freed['appointment_date'],
+                                    freed['queue_id'])
+        restored = storage.load_registrations(self.connection)
+        reissued = self.make(restored)
+        self.assertEqual(reissued['queue_id'], freed['queue_id'])
+
+    def test_delete_all_empties_the_table_and_reports_the_count(self):
+        records = []
+        for _ in range(4):
+            record = self.make(records)
+            records.append(record)
+            storage.save_registration(self.connection, record)
+        self.assertEqual(storage.delete_all_registrations(self.connection), 4)
+        self.assertEqual(storage.load_registrations(self.connection), [])
+        self.assertEqual(storage.delete_all_registrations(self.connection), 0)
+
+    def test_save_many_writes_every_record(self):
+        records = []
+        for _ in range(5):
+            records.append(self.make(records))
+        self.assertEqual(storage.save_many(self.connection, records), 5)
+        self.assertEqual(len(storage.load_registrations(self.connection)), 5)
+
+    def test_save_many_writes_nothing_when_one_record_clashes(self):
+        """All or nothing: a rolled-back import must leave no trace."""
+        existing = dict(self.make([]), queue_id='Q0147', appointment_date='2026-09-08')
+        storage.save_registration(self.connection, existing)
+
+        batch = [dict(existing, queue_id='Q0148'),
+                 dict(existing, queue_id='Q0149'),
+                 dict(existing)]                      # clashes with what is stored
+        with self.assertRaises(ValueError):
+            storage.save_many(self.connection, batch)
+        # The two good rows must NOT have been kept.
+        self.assertEqual(storage.count_registrations(self.connection), 1)
+
+    def test_save_many_accepts_an_empty_list(self):
+        self.assertEqual(storage.save_many(self.connection, []), 0)
+        self.assertEqual(storage.count_registrations(self.connection), 0)
+
     def test_the_unique_rule_exists_in_the_schema(self):
         """Guard against someone removing the constraint the key depends on."""
         sql = self.connection.execute(

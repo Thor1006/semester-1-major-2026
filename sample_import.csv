@@ -1,0 +1,6 @@
+patient_name,medical_information,appointment_date,phone_number,destination_ward
+Somchai Fictional,Routine follow-up. Invented record.,2026-09-10,081-000-0001,General medicine
+Malee Fictional,,2026-09-10,081-000-0002,Pediatrics
+Anan Fictional,"Reports headaches, invented detail.",2026-09-10,+66 81 000 0003,General medicine
+Nadia Fictional,Post-operative check. Not a real patient.,2026-09-10,(02) 123-4567,Orthopedics
+Pichai Fictional,,2026-09-11,081-000-0005,General medicine

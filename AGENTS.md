@@ -44,6 +44,9 @@ The user explicitly wants to learn step by step and be able to recreate the proj
 - Persistence exists as of 2026-09-08 (roadmap lesson 6, built ahead of lessons 4 and 5 at the user's request). `storage.py` saves REGISTRATIONS ONLY to a local SQLite file, `clinic.db`, beside the source. The table enforces `UNIQUE (appointment_date, queue_id)`, matching the date-scoped ticket rule. Loaded records are dictionaries identical in shape to fresh ones and feed ticket generation, so saved tickets are excluded from later choices.
 - Room and doctor RESERVATIONS are deliberately not saved, because nothing can end a reservation yet. A restored reservation would hold a resource with no release step (roadmap lesson 5) able to free it. Every loaded case starts as Waiting. **Do not add reservation persistence before the release/completion lifecycle exists.**
 - `clinic.db` is excluded by `.gitignore` and never leaves the computer. Keep using fictional patient details.
+- Saved data can be managed from the interface as of 2026-09-08: bulk CSV import (`bulk_import.py`), deleting one registration, clearing all of them, and a double-click details window. Import is ALL OR NOTHING - every row is validated before anything is written, and one bad row refuses the whole file with a numbered report. Imported rows never supply their own queue ID; tickets are generated exactly as for typed registrations.
+- Deleting a registration must also release any room and doctor it held, or the resources stay reserved by a patient who no longer exists. Only today's cases can hold a reservation, so the release is conditional on the record's date.
+- The queue table hides medical information; the details window shows it, because a staff member asked for one specific patient rather than leaving it on display.
 - Update this section and `README.md` when working features and run commands exist. Do not describe planned capabilities as completed.
 
 ## First usable version

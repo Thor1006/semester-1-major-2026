@@ -39,6 +39,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Removed on 2026-09-08 at your request: the lesson 3 machine-learning extension, its simulated history, and its walkthrough. Assignment now takes the first compatible free room and doctor in configured order. The project needs no extra packages again.
 - Preparation for lesson 6 (persistence), 2026-09-08: ticket uniqueness is now scoped to one appointment date, so each ward gets a fresh pool of 100 suffixes every day. Without this, saving records to disk would have capped a ward at 100 patients forever rather than 100 per day. The trade-off to remember: a ticket alone no longer identifies a registration, so the date plus the ticket is the key.
 - Implemented and checked, 2026-09-08: lesson 6 persistence. Registrations are saved to a local SQLite file and restored on startup; reservations are not. Built ahead of lessons 4 and 5 because you asked for it; time-slot scheduling and the release lifecycle are still missing. Your lesson 6 practice is pending.
+- Implemented and checked, 2026-09-08: bulk CSV import, deleting one registration, clearing all of them, and a double-click details window. Your practice for this step is pending.
 - No hardware checks are complete.
 
 ## First lesson's target
@@ -331,3 +332,123 @@ scheduling (lesson 4), no completion or release (lesson 5), no way to edit or de
 registration from inside the app, and no migrations. The app opens one database connection
 and writes on the interface thread; that is fine at this size, but a slow or networked
 database would need the work moved off the event loop.
+
+
+### Lesson 6 extension: importing, deleting, and inspecting saved data
+
+**Status:** implemented and checked; practice pending. Read `bulk_import.py` first, then
+the four new callbacks in `app.py`: `show_details`, `delete_selected`, `import_csv` and
+`clear_all`, plus the three new functions in `storage.py`.
+
+Saving data was only half the job. Once information persists you need to get it in
+quickly, look at it, and take it out again --- otherwise a typo is permanent and the only
+way to inspect a record is to read the database file.
+
+**Bulk import: validate everything, then write.**
+
+`read_import_file` reads the CSV, runs every row through the same
+`create_patient_record` used by the form, and collects the failures. Only if there are
+none does it return records. Nothing is written from that module at all: it opens a file
+and returns values, which is why it can be tested without a window or a database.
+
+The rule it follows is ALL OR NOTHING. One bad row and nothing is imported. The
+alternative --- import the good rows, list the skipped ones --- is a defensible design,
+but it leaves the user reconciling two lists to work out who actually arrived. Here we
+would rather they fix the file and try again. `storage.save_many` enforces the same rule
+at the database level with `with connection:`, which rolls the whole transaction back if
+any insert fails.
+
+Two details worth copying into your own file-reading code:
+
+- `newline=''` in the `open` call. The `csv` module documentation requires it, and it is
+  what lets a quoted field containing a line break be read as one value.
+- `encoding='utf-8-sig'`. Excel writes an invisible byte-order mark at the start of a CSV.
+  Without `-sig` it becomes part of the first column's name, and your header check fails
+  with a message that looks like nonsense.
+
+**Row numbers should match what the user sees.** `enumerate(rows, start=2)` counts from 2
+because row 1 is the header. Telling someone "row 5 is wrong" when their spreadsheet shows
+the problem on row 6 wastes their time and their trust.
+
+**Tickets are generated, never imported.** The CSV has no queue-ID column. If it did, a
+file could invent an ID the app would not have chosen, or collide with a saved one. Each
+row is given a ticket by the ordinary generator, and the running list `known` grows as
+rows are accepted, so two rows in the same file cannot claim the same ticket either.
+
+**Deleting has a consequence beyond the row.** A deleted patient may have been holding a
+room and a doctor. Remove the record and forget the reservation, and those resources stay
+marked Reserved by someone who no longer exists, with nothing able to release them:
+
+```python
+if record['appointment_date'] == date.today().isoformat():
+    if assignments.pop(record['queue_id'], None) is not None:
+        refresh_resources()
+```
+
+The date check is the subtle part. `assignments` is keyed by ticket alone, which is safe
+only because just today's cases can hold a reservation. Deleting *another* date's
+identical ticket must not release today's room. This is exactly the kind of bug that
+date-scoped tickets introduce quietly.
+
+**Confirmations should say what disappears.** "Delete this record?" invites a reflex yes.
+Naming the patient, the ticket and the date gives the user something to check. `Clear all`
+asks twice, because it cannot be undone and one stray click should not empty the queue.
+
+**A details window, on double-click.** Single click SELECTS a row, and selecting is how
+you choose a case to assign or delete. If selecting also opened a window you would have to
+dismiss it before every other action. Double-click to open is the ordinary desktop
+convention, and `Details` gives the same thing a visible button.
+
+```python
+queue_table.bind('<Double-1>', show_details)
+```
+
+`bind` attaches a handler to an EVENT rather than to a widget's command. Tkinter passes an
+event object to the handler, which is why `show_details(event=None)` accepts an argument
+it never uses --- the default lets the button call it with no argument at all.
+
+`Toplevel` creates a second window. `transient(window)` keeps it above the main one;
+`grab_set()` makes it modal, so the table underneath cannot change while its details are
+displayed. The notes box is filled and *then* set to `state='disabled'`: a disabled Text
+refuses insertions, so doing it in the other order leaves you with an empty box.
+
+**A privacy decision, made deliberately.** The queue table hides medical information,
+because that table sits on screen where anyone can glance at it. The details window shows
+it, because a staff member asked for one named patient. That is a judgement about who is
+looking, not an oversight --- and it is worth being able to explain in those terms.
+
+**Trace an import.**
+
+| Step | What happens |
+| --- | --- |
+| You click Import CSV... | `filedialog.askopenfilename` returns a path, or `''` if you cancelled |
+| `read_import_file` | checks the header, then validates every row, collecting problems |
+| Any problem | a warning lists them by spreadsheet row number; nothing is written |
+| No problems | `storage.save_many` inserts them all inside one transaction |
+| The interface | each record is appended to the list and given a table row |
+
+**Your practice exercise.** Add an **Export CSV** button that writes the current queue back
+out to a file. **Hint:** `filedialog.asksaveasfilename(defaultextension='.csv')` gives you
+a path, and `csv.DictWriter` is the mirror of `DictReader` --- create it with
+`fieldnames=bulk_import.REQUIRED_COLUMNS`, call `writeheader()`, then `writerow()` per
+record. Think about one question first: should the export include the queue ID? Re-reading
+your own export should behave like importing new patients, and the answer follows from
+that.
+
+**Common mistakes**
+
+| Mistake | Consequence | Correct approach here |
+| --- | --- | --- |
+| Writing rows as you validate them | A bad row halfway leaves a partial import nobody can audit. | Validate everything, then write in one transaction. |
+| `open(path)` without `newline=''` | A quoted field containing a line break splits into two rows. | Pass `newline=''`, as the csv docs require. |
+| Plain `utf-8` for an Excel file | The first column name silently gains a BOM and the header check fails. | Use `utf-8-sig`. |
+| Numbering problem rows from 1 | Every message points one row above the real problem. | `enumerate(rows, start=2)`. |
+| Deleting a record but not its reservation | A room stays Reserved by a patient who no longer exists. | Pop the assignment and refresh the view. |
+| Popping the assignment without checking the date | Deleting another day's identical ticket frees today's room. | Compare `appointment_date` with today first. |
+| Opening details on single click | Selecting a row for any other action becomes a fight. | Bind `<Double-1>`. |
+| Disabling the notes Text before inserting | The box stays empty; disabled widgets refuse insertions. | Insert first, disable after. |
+
+**Current limits to remember.** There is no export yet (that is your exercise) and no way
+to EDIT a saved registration --- only to delete it and enter it again. Import cannot update
+an existing patient, and it has no dry-run preview. Deleting is immediate and permanent;
+there is no undo and no archive of removed records, which a real clinic would need.

@@ -124,6 +124,57 @@ def load_registrations(connection):
     return [dict(zip(FIELDS, tuple(row))) for row in rows]
 
 
+def save_many(connection, records):
+    """Write several registrations, ALL of them or NONE of them.
+
+    A bulk import that stopped halfway would leave the user guessing which
+    patients made it in. `with connection:` opens a transaction: if any insert
+    raises, SQLite rolls the whole thing back and the database is untouched.
+    """
+    try:
+        with connection:
+            # executemany runs the same statement once per tuple in the list.
+            connection.executemany(
+                'INSERT INTO registrations'
+                ' (appointment_date, queue_id, patient_name, medical_information,'
+                '  phone_number, destination_ward, ward_code)'
+                ' VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [(r['appointment_date'], r['queue_id'], r['patient_name'],
+                  r['medical_information'], r['phone_number'],
+                  r['destination_ward'], r['ward_code']) for r in records])
+    except sqlite3.IntegrityError as error:
+        raise ValueError(
+            'The import contains a ticket already saved for its date. '
+            'Nothing was imported.') from error
+    return len(records)
+
+
+def delete_registration(connection, appointment_date, queue_id):
+    """Remove one registration. Returns True if a row was actually deleted.
+
+    Both halves of the key are required, because a ticket alone does not
+    identify a registration once the pool is scoped to a date. Deleting on
+    `queue_id` only could remove a different day's patient.
+    """
+    cursor = connection.execute(
+        'DELETE FROM registrations WHERE appointment_date = ? AND queue_id = ?',
+        (appointment_date, queue_id))
+    connection.commit()
+    # rowcount reports how many rows the statement changed. Zero means the
+    # record was not there, which the caller may want to report rather than
+    # silently treat as success.
+    return cursor.rowcount > 0
+
+
+def delete_all_registrations(connection):
+    """Empty the table and report how many rows went. Not reversible."""
+    # Count first: after the DELETE there is nothing left to count.
+    removed = count_registrations(connection)
+    connection.execute('DELETE FROM registrations')
+    connection.commit()
+    return removed
+
+
 def count_registrations(connection):
     """How many registrations are stored. Used for the startup message."""
     # fetchone() returns the single result row; [0] is its first column.

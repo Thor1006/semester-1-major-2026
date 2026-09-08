@@ -23,6 +23,23 @@ Registration accepts patient name, optional medical information, appointment dat
 
 **Reservations are not saved, only registrations.** Nothing in the project can end a reservation yet, so a restored one would hold a room with no way to free it. Every case therefore comes back as Waiting. The database file stays on this computer, is excluded from version control, and is never transmitted anywhere.
 
+### Managing saved data
+
+Four controls sit under the queue table:
+
+- **Details**, or double-click a row, opens everything stored about that patient, including the medical information the queue table deliberately hides.
+- **Delete** removes the selected registration after naming the patient in the confirmation. Any room and doctor it was holding are released.
+- **Import CSV...** adds many registrations from a spreadsheet export.
+- **Clear all** empties the saved queue, behind two confirmations.
+
+The import file needs this header, and `sample_import.csv` is a working example:
+
+```
+patient_name,medical_information,appointment_date,phone_number,destination_ward
+```
+
+`medical_information` may be blank on any row, but the column must be present. Queue IDs are **not** imported: each row is validated exactly like a typed registration and given a generated ticket. **Import is all or nothing.** If any row is invalid, nothing is written and every problem is listed with the row number as your spreadsheet shows it, so you fix the file once rather than discovering one error per attempt.
+
 `Q0147` means `Q` + ward `01` + random suffix `47`. `Q0107` and `Q0142` can coexist. Each example ward has two rooms and two doctors; their IDs, such as `R01-1` and `D01-1`, are separate from queue IDs. The ward names/codes in `registration.py` are editable examples.
 
 The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per appointment date. Each date has its own pool, so a busy day cannot use up tomorrow's tickets. A full pool produces a helpful error naming the date. Because the pool is per date, the same ticket can appear again on a different day: `Q0147` on the 8th and `Q0147` on the 9th are different patients, and the date plus the ticket is what identifies a registration. Closing the app now keeps registrations but still clears reservations. Use fictional patient details: they are written to a real file on disk. Deleting `clinic.db` resets the project to an empty queue.
@@ -51,9 +68,9 @@ Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`
 Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py
 ```
 
-That runs 30 checks covering registration, queue IDs, assignment, and saving. The checks use a temporary database, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
+That runs 54 checks covering registration, queue IDs, assignment, saving, deleting, and CSV import. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

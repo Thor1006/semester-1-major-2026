@@ -9,12 +9,15 @@ lessons/lesson_01.py. Lesson 2 is preserved in lessons/lesson_02/.
 # retains your confirmation popup. date supplies the default appointment date.
 import tkinter as tk
 from datetime import date
-from tkinter import messagebox, ttk
+# filedialog asks the operating system for a file, so we never build a path by
+# hand or guess where the user keeps their spreadsheet.
+from tkinter import filedialog, messagebox, ttk
 
 # Import our own module using its filename without .py. It owns validation and
 # ID generation; this file owns the visible interface and its event handling.
 from registration import WARD_CODES, create_patient_record
 from assignment import make_demo_resources, assign_patient
+from bulk_import import REQUIRED_COLUMNS, read_import_file
 import storage
 
 # Open the local database and read back everything registered previously. From
@@ -58,7 +61,7 @@ assignment_rule = ('Assignment takes the first compatible free room and doctor, 
 # Calling Tk constructs the root; assignment binds a name to the object.
 # Its methods set the title, requested starting dimensions, and minimum size.
 window = tk.Tk()
-window.title('Outpatient Scheduler - ML assignment demo')
+window.title('App')
 window.geometry('1220x750')
 window.minsize(1160, 720)
 
@@ -75,7 +78,8 @@ heading = ttk.Label(content, text='Front-desk registration', font=('Segoe UI', 2
 heading.grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 8))
 instructions = ttk.Label(
     content,
-    text='Use fictional patient details for this lesson. Records stay in memory until the window closes.',
+    text=('Use fictional patient details: registrations are saved to a file on this computer. '
+          'Double-click a queue row to see its details.'),
 )
 instructions.grid(row=1, column=0, columnspan=2, sticky='w', pady=(0, 20))
 
@@ -190,7 +194,10 @@ for saved_record in patient_records:
 
 format_label = ttk.Label(
     queue_panel,
-    text=assignment_rule + '\nSelect a case dated today. Q0147 = ward 01 + random 47.',
+    # Showing the expected CSV header here means the user learns the format
+    # before choosing a file, instead of only from an error afterwards.
+    text=(assignment_rule + '\nSelect a case dated today. Q0147 = ward 01 + random 47.'
+          '\nCSV import columns: ' + ', '.join(REQUIRED_COLUMNS)),
     wraplength=390,
 )
 format_label.grid(row=2, column=0, columnspan=2, sticky='w', pady=(14, 0))
@@ -263,10 +270,196 @@ def assign_selected():
     refresh_resources()
 
 
+def selected_record():
+    """Return the record for the highlighted row, or None if nothing is chosen."""
+    selected = queue_table.selection()
+    if not selected:
+        return None
+    # next(..., None) returns None instead of raising when nothing matches, so a
+    # stale selection cannot crash a callback.
+    return next((item for item in patient_records if row_key(item) == selected[0]), None)
+
+
+def show_details(event=None):
+    """Open a window with everything stored about one registration.
+
+    Bound to DOUBLE-click rather than single click on purpose. A single click
+    selects a row, and selecting is how you choose a case to assign or delete;
+    if selecting also opened a window you would have to dismiss it before every
+    other action. Double-click to open is the ordinary desktop convention.
+
+    The queue table deliberately hides medical information, because that table
+    is visible to anyone glancing at the screen. Here it is shown, because a
+    staff member has deliberately asked for one specific patient. That is a
+    judgement about who is looking, not an accident.
+    """
+    record = selected_record()
+    if record is None:
+        assignment_message.config(text='Select a case first, then double-click it.')
+        return
+
+    # Toplevel makes a second window. transient ties it to the main window so it
+    # stays in front and minimises with it; grab_set makes it modal, so the
+    # underlying table cannot change while its details are on screen.
+    details = tk.Toplevel(window)
+    details.title(f"Queue {record['queue_id']}")
+    details.transient(window)
+    details.resizable(False, False)
+
+    body = ttk.Frame(details, padding=18)
+    body.pack(fill='both', expand=True)
+    body.columnconfigure(1, weight=1)
+
+    ttk.Label(body, text=f"Queue {record['queue_id']}",
+              font=('Segoe UI', 14, 'bold')).grid(row=0, column=0, columnspan=2,
+                                                  sticky='w', pady=(0, 12))
+
+    reservation = assignments.get(record['queue_id'])
+    # A reservation belongs to today's list only, so a same ticket on another
+    # date must not appear to share it.
+    if reservation and record['appointment_date'] == date.today().isoformat():
+        assignment_text = f"{reservation['room_id']} / {reservation['doctor_id']}"
+    else:
+        assignment_text = 'Waiting - no room or doctor reserved'
+
+    fields = [('Patient name', record['patient_name']),
+              ('Appointment date', record['appointment_date']),
+              ('Destination ward', f"{record['destination_ward']} "
+                                   f"(code {record['ward_code']})"),
+              ('Phone number', record['phone_number']),
+              ('Assignment', assignment_text)]
+    for index, (label, value) in enumerate(fields, start=1):
+        ttk.Label(body, text=label + ':').grid(row=index, column=0, sticky='nw',
+                                               padx=(0, 12), pady=2)
+        ttk.Label(body, text=value, wraplength=320).grid(row=index, column=1,
+                                                         sticky='w', pady=2)
+
+    ttk.Label(body, text='Medical history / information:').grid(
+        row=6, column=0, columnspan=2, sticky='w', pady=(12, 4))
+    notes = tk.Text(body, height=6, width=52, wrap='word', font=('Segoe UI', 10))
+    notes.grid(row=7, column=0, columnspan=2, sticky='ew')
+    notes.insert('1.0', record['medical_information'] or '(none recorded)')
+    # state='disabled' makes the Text read-only. It must be set AFTER inserting,
+    # because a disabled Text refuses insertions too.
+    notes.configure(state='disabled')
+
+    ttk.Button(body, text='Close', command=details.destroy).grid(
+        row=8, column=0, columnspan=2, sticky='ew', pady=(14, 0))
+    details.grab_set()
+
+
+def delete_selected():
+    """Delete one registration from the database, the list, and the table."""
+    record = selected_record()
+    if record is None:
+        assignment_message.config(text='Select the case to delete first.')
+        return
+
+    # Name the patient in the question. "Delete this record?" invites a reflex
+    # yes; naming who disappears gives the user something to check.
+    if not messagebox.askyesno(
+            'Delete registration',
+            f"Delete {record['queue_id']} - {record['patient_name']}, "
+            f"{record['appointment_date']}?\n\nThis cannot be undone."):
+        return
+
+    storage.delete_registration(database, record['appointment_date'], record['queue_id'])
+    patient_records.remove(record)
+    queue_table.delete(row_key(record))
+
+    # Free any room and doctor this case was holding. Without this the resources
+    # would stay reserved by a patient who no longer exists, and nothing could
+    # release them. The date check matters: assignments are keyed by ticket
+    # alone, and only today's cases can hold one, so deleting another date's
+    # identical ticket must not release today's reservation.
+    if record['appointment_date'] == date.today().isoformat():
+        if assignments.pop(record['queue_id'], None) is not None:
+            refresh_resources()
+
+    assignment_message.config(
+        text=f"Deleted {record['queue_id']}. {len(patient_records)} patient(s) remain.")
+
+
+def import_csv():
+    """Read many registrations from a CSV file, all of them or none."""
+    path = filedialog.askopenfilename(
+        title='Import registrations from CSV',
+        filetypes=[('CSV files', '*.csv'), ('All files', '*.*')])
+    # An empty string means the user cancelled the dialog.
+    if not path:
+        return
+
+    try:
+        # Validate the WHOLE file first. Nothing is written until every row is
+        # known to be good, so a bad row cannot leave a half-finished import.
+        new_records = read_import_file(path, patient_records)
+        storage.save_many(database, new_records)
+    except ValueError as error:
+        messagebox.showwarning('Import refused', str(error))
+        return
+    except OSError as error:
+        messagebox.showwarning('Import failed', f'Could not read the file.\n{error}')
+        return
+
+    for record in new_records:
+        patient_records.append(record)
+        add_queue_row(record)
+    result_label.config(text=f'Imported {len(new_records)} patient(s). '
+                             f'{len(patient_records)} in the queue.')
+    messagebox.showinfo('Import complete',
+                        f'{len(new_records)} registration(s) added.\n'
+                        'Reservations are not part of an import.')
+
+
+def clear_all():
+    """Empty the saved queue completely, after two deliberate confirmations."""
+    if not patient_records:
+        result_label.config(text='There is nothing saved to clear.')
+        return
+    # Two questions, because this cannot be undone and one reflex click should
+    # not be enough to lose everything.
+    if not messagebox.askyesno(
+            'Clear saved queue',
+            f'Delete ALL {len(patient_records)} saved registration(s)?\n\n'
+            'This cannot be undone.'):
+        return
+    if not messagebox.askokcancel('Clear saved queue', 'Really delete everything?'):
+        return
+
+    removed = storage.delete_all_registrations(database)
+    # clear() empties the EXISTING list, so every other reference still sees it.
+    patient_records.clear()
+    queue_table.delete(*queue_table.get_children())
+    assignments.clear()
+    refresh_resources()
+    result_label.config(text=f'Cleared {removed} saved registration(s).')
+
+
 assign_button = ttk.Button(queue_panel, text='Assign selected case', command=assign_selected)
 assign_button.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(12, 0))
+
+# A child frame keeps these four buttons on one row without giving the whole
+# queue panel four columns to align against.
+actions = ttk.Frame(queue_panel)
+actions.grid(row=4, column=0, columnspan=2, sticky='ew', pady=(8, 0))
+for index in range(4):
+    actions.columnconfigure(index, weight=1)
+details_button = ttk.Button(actions, text='Details', command=show_details)
+details_button.grid(row=0, column=0, sticky='ew', padx=(0, 4))
+delete_button = ttk.Button(actions, text='Delete', command=delete_selected)
+delete_button.grid(row=0, column=1, sticky='ew', padx=4)
+import_button = ttk.Button(actions, text='Import CSV...', command=import_csv)
+import_button.grid(row=0, column=2, sticky='ew', padx=4)
+clear_button = ttk.Button(actions, text='Clear all', command=clear_all)
+clear_button.grid(row=0, column=3, sticky='ew', padx=(4, 0))
+
+# bind attaches a handler to an EVENT rather than to a button. '<Double-1>' is
+# a double click of mouse button 1. Tkinter passes the event object to the
+# handler, which is why show_details accepts an ignored `event` argument.
+queue_table.bind('<Double-1>', show_details)
+
 assignment_message = ttk.Label(queue_panel, text='Choose a case to reserve a compatible room and doctor.', wraplength=470)
-assignment_message.grid(row=4, column=0, columnspan=2, sticky='w', pady=(10, 0))
+assignment_message.grid(row=5, column=0, columnspan=2, sticky='w', pady=(10, 0))
 refresh_resources()
 
 
