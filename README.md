@@ -17,11 +17,15 @@ The original proposal is broader than this first version. `AGENTS.md` records th
 
 ## Status
 
-Lesson 3 is runnable. Registration accepts patient name, optional medical information, appointment date, phone, and destination ward. Select a case dated today and click **Assign selected case**. The app filters for a compatible, available room and doctor and reserves the first of each in configured order; the **Rooms and doctors** tab reflects reservations.
+Registrations are now saved. Closing the app and reopening it restores the queue from a local SQLite file, `clinic.db`, created beside the source on first run.
+
+Registration accepts patient name, optional medical information, appointment date, phone, and destination ward. Select a case dated today and click **Assign selected case**. The app filters for a compatible, available room and doctor and reserves the first of each in configured order; the **Rooms and doctors** tab reflects reservations.
+
+**Reservations are not saved, only registrations.** Nothing in the project can end a reservation yet, so a restored one would hold a room with no way to free it. Every case therefore comes back as Waiting. The database file stays on this computer, is excluded from version control, and is never transmitted anywhere.
 
 `Q0147` means `Q` + ward `01` + random suffix `47`. `Q0107` and `Q0142` can coexist. Each example ward has two rooms and two doctors; their IDs, such as `R01-1` and `D01-1`, are separate from queue IDs. The ward names/codes in `registration.py` are editable examples.
 
-The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per appointment date. Each date has its own pool, so a busy day cannot use up tomorrow's tickets. A full pool produces a helpful error naming the date. Because the pool is per date, the same ticket can appear again on a different day: `Q0147` on the 8th and `Q0147` on the 9th are different patients, and the date plus the ticket is what identifies a registration. Closing the app still loses records and reservations. Use fictional patient details for this lesson.
+The app chooses among unused suffixes `00`–`99`, allowing 100 tickets per ward per appointment date. Each date has its own pool, so a busy day cannot use up tomorrow's tickets. A full pool produces a helpful error naming the date. Because the pool is per date, the same ticket can appear again on a different day: `Q0147` on the 8th and `Q0147` on the 9th are different patients, and the date plus the ticket is what identifies a registration. Closing the app now keeps registrations but still clears reservations. Use fictional patient details: they are written to a real file on disk. Deleting `clinic.db` resets the project to an empty queue.
 
 These are immediate reservations for today; future time-slot scheduling, shifts, completion/release, persistence, clinical priority, and hardware are later work. Reservations remain until the app closes. The same ticket cannot be assigned twice, but there is no permanent patient identity to detect two registrations belonging to the same person. Staff choose the case; the random ticket does not establish priority.
 
@@ -47,9 +51,9 @@ Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`
 Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py
 ```
 
-That runs 16 checks covering registration, queue IDs, and assignment. The detailed teaching walkthroughs are in `LEARNING.md`.
+That runs 30 checks covering registration, queue IDs, assignment, and saving. The checks use a temporary database, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

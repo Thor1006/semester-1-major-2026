@@ -1,5 +1,7 @@
 """Checks for lesson 2. All patient details here are fictional test inputs."""
 
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -106,8 +108,18 @@ class InterfaceTests(unittest.TestCase):
     def test_registration_popup_table_and_invalid_double_click(self):
         # Import constructs the real widgets. Mock only the blocking popup, so
         # the test can invoke the real button callback without human interaction.
-        import app
+        #
+        # app.py opens the database at import time, so storage must be pointed at
+        # a TEMPORARY file first. Without this the checks would write test
+        # patients into the real clinic.db.
+        import storage
+        handle, database_path = tempfile.mkstemp(suffix='.db')
+        os.close(handle)
+        os.unlink(database_path)
         from datetime import date
+        with patch.object(storage, 'DATABASE_PATH', database_path):
+            import app
+        self.addCleanup(self._discard_database, database_path)
         app.window.withdraw()
         try:
             with patch('app.messagebox.showinfo') as popup:
@@ -119,7 +131,7 @@ class InterfaceTests(unittest.TestCase):
                     app.information_text.insert('1.0', 'Fictional private note')
                     app.phone_entry.insert(0, '081-000-0000')
                     app.date_entry.delete(0, 'end')
-                    app.date_entry.insert(0, '2026-09-06')
+                    app.date_entry.insert(0, date.today().isoformat())
                     app.ward_combobox.set('General medicine')
                     app.add_button.invoke()
                 self.assertEqual(len(app.patient_records), 2)
@@ -128,8 +140,9 @@ class InterfaceTests(unittest.TestCase):
                 for record in app.patient_records:
                     self.assertTrue(record['queue_id'].startswith('Q01'))
                     self.assertEqual(record['medical_information'], 'Fictional private note')
-                    self.assertEqual(app.queue_table.item(record['queue_id'], 'values')[:3],
-                                     (record['queue_id'], 'General medicine', '2026-09-06'))
+                    self.assertEqual(app.queue_table.item(app.row_key(record), 'values')[:3],
+                                     (record['queue_id'], 'General medicine',
+                                      date.today().isoformat()))
                 self.assertNotEqual(app.patient_records[0]['queue_id'], app.patient_records[1]['queue_id'])
                 self.assertNotIn('Fictional private note', popup.call_args.args[1])
                 self.assertEqual(app.name_entry.get(), '')
@@ -143,9 +156,7 @@ class InterfaceTests(unittest.TestCase):
                 app.assign_button.invoke()
                 self.assertEqual(app.assignments, {})  # No selection yet.
                 for record in app.patient_records:
-                    record['appointment_date'] = date.today().isoformat()
-                    app.queue_table.set(record['queue_id'], 'date', record['appointment_date'])
-                    app.queue_table.selection_set(record['queue_id'])
+                    app.queue_table.selection_set(app.row_key(record))
                     app.assign_button.invoke()
                 self.assertEqual(len(app.assignments), 2)
                 app.assign_button.invoke()  # Same case selected: no extra reservation.
@@ -156,16 +167,32 @@ class InterfaceTests(unittest.TestCase):
                 app.date_entry.insert(0, date.today().isoformat())
                 app.add_button.invoke()
                 third = app.patient_records[-1]
-                app.queue_table.selection_set(third['queue_id'])
+                app.queue_table.selection_set(app.row_key(third))
                 app.assign_button.invoke()
                 self.assertEqual(len(app.assignments), 2)
-                self.assertEqual(app.queue_table.set(third['queue_id'], 'assignment'), 'Waiting')
+                self.assertEqual(app.queue_table.set(app.row_key(third), 'assignment'), 'Waiting')
                 self.assertIn('No available room', app.assignment_message.cget('text'))
                 reserved_rows = [row for row in app.resource_table.get_children()
                                  if 'Reserved:' in app.resource_table.item(row, 'values')[2]]
                 self.assertEqual(len(reserved_rows), 4)  # Two rooms and two doctors.
+
+                # Lesson 6: the three registrations must have reached the file,
+                # while the two reservations must NOT have been saved.
+                saved = storage.load_registrations(app.database)
+                self.assertEqual(len(saved), 3)
+                self.assertEqual([item['queue_id'] for item in saved],
+                                 [item['queue_id'] for item in app.patient_records])
+                tables = app.database.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
+                self.assertEqual([row[0] for row in tables], ['registrations'])
         finally:
+            app.database.close()
             app.window.destroy()
+
+    @staticmethod
+    def _discard_database(path):
+        if os.path.exists(path):
+            os.unlink(path)
 
 
 if __name__ == '__main__':

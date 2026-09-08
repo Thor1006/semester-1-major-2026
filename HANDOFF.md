@@ -57,6 +57,34 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Persistence built (lesson 6)
+
+- The user asked to build persistence. Added `storage.py` (SQLite) and `test_storage.py`,
+  and wired `app.py` to load at startup and save on each registration.
+- REGISTRATIONS ONLY are saved, by the user's decision. Reservations stay in memory because
+  no release/completion step exists (roadmap lesson 5); a restored reservation would hold a
+  room that nothing could free. Loaded cases come back as Waiting and the startup label says
+  reservations are not restored. **Do not add reservation persistence before lesson 5.**
+- The table enforces `UNIQUE (appointment_date, queue_id)`, so the date-scoped ticket rule is
+  enforced by the database and not only by the ID generator. `row_id INTEGER PRIMARY KEY`
+  preserves arrival order, which date+ticket cannot express.
+- Fixed a latent bug the date scoping had created: the queue table used the ticket as its
+  Tkinter row id, which would break as soon as a ticket recurred on another date. `app.py`
+  now has `row_key(record)` returning `date|ticket`, used for insert, lookup and selection.
+- Found and fixed test pollution: importing `app` opens the database, so the interface test
+  was writing test patients into the real `clinic.db`. It now points
+  `storage.DATABASE_PATH` at a temporary file before importing `app`, and cleans it up. The
+  same test was registering on a fixed date and rewriting `appointment_date` afterwards,
+  which would have invalidated a row key; it now registers with today's date directly.
+- Verified: 30 tests pass. A two-process restart check registered two patients and made one
+  reservation, then a genuinely separate process restored both patients in order with zero
+  reservations and every cell Waiting. Starting with no database file works and creates it.
+  `git check-ignore` confirms `clinic.db` is excluded from version control.
+- Built ahead of lessons 4 and 5 at the user's request. Time-slot scheduling and the release
+  lifecycle are still missing, there is no way to edit or delete a saved registration from
+  the app, and there are no migrations - changing `SCHEMA` requires deleting `clinic.db`.
+  The lesson 6 walkthrough in `LEARNING.md` covers that trap and sets the practice exercise.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Ticket pool scoped to a date
 
 - Preparation for persistence, at the user's request. Building persistence first would have

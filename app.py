@@ -15,15 +15,37 @@ from tkinter import messagebox, ttk
 # ID generation; this file owns the visible interface and its event handling.
 from registration import WARD_CODES, create_patient_record
 from assignment import make_demo_resources, assign_patient
+import storage
 
-# This LIST holds one dictionary per successful registration, in insertion order.
-# It is RAM storage: closing the app loses records and knowledge of used IDs.
-# Nothing is written to disk, logged, or transmitted to an external service.
-patient_records = []
+# Open the local database and read back everything registered previously. From
+# lesson 6 onward this list starts FULL rather than empty, and closing the app
+# no longer loses the queue. The file stays on this computer; nothing is
+# transmitted anywhere.
+database = storage.connect()
+# This LIST holds one dictionary per registration, in arrival order. Records
+# loaded from disk are ordinary dictionaries, identical in shape to new ones,
+# so the rest of the program cannot tell them apart. It also feeds ticket
+# generation, so yesterday's saved tickets are excluded from today's choices.
+patient_records = storage.load_registrations(database)
+
 # Unpack the two lists returned by the factory. The separate dictionary maps
 # queue IDs to reservations; its presence/absence defines reserved/waiting state.
+# Reservations are deliberately NOT saved: nothing can end one yet, so a
+# restored reservation would hold a room forever. Every loaded case therefore
+# starts as Waiting.
 rooms, doctors = make_demo_resources()
 assignments = {}
+
+
+def row_key(record):
+    """The unique row identifier for one registration.
+
+    A ticket alone is NOT unique any more: the pool is scoped to a date, so
+    Q0147 may exist on the 8th and again on the 9th. Using the ticket as the
+    table's row id would make Tkinter refuse the second one. Date plus ticket
+    is the same key the database uses.
+    """
+    return f"{record['appointment_date']}|{record['queue_id']}"
 
 # Assignment takes the first compatible free room and doctor, in configured
 # order. No duration is predicted and no model is loaded: the app needs only
@@ -143,13 +165,43 @@ queue_scroll = ttk.Scrollbar(queue_panel, orient='vertical', command=queue_table
 queue_scroll.grid(row=1, column=1, sticky='ns')
 queue_table.configure(yscrollcommand=queue_scroll.set)
 
+
+def add_queue_row(record):
+    """Put one registration in the table and scroll it into view.
+
+    Used both for cases loaded from the database at startup and for cases
+    registered while the app is open, so a restored row is built by exactly the
+    same code as a fresh one.
+    """
+    # '' means a top-level row, 'end' appends it, and iid is the unique row key.
+    queue_table.insert(
+        '', 'end', iid=row_key(record),
+        values=(record['queue_id'], record['destination_ward'],
+                record['appointment_date'], 'Waiting'),
+    )
+    # see scrolls the row into view if the table has become longer.
+    queue_table.see(row_key(record))
+
+
+# Show everything read back from the database. Assignment state is not restored,
+# so each loaded case is Waiting again.
+for saved_record in patient_records:
+    add_queue_row(saved_record)
+
 format_label = ttk.Label(
     queue_panel,
     text=assignment_rule + '\nSelect a case dated today. Q0147 = ward 01 + random 47.',
     wraplength=390,
 )
 format_label.grid(row=2, column=0, columnspan=2, sticky='w', pady=(14, 0))
-result_label = ttk.Label(form, text='Complete the required fields to generate a queue ID.', wraplength=390)
+# Say on startup whether anything was restored, so a returning user can see at
+# a glance that the queue survived rather than wondering whether it saved.
+if patient_records:
+    startup_text = (f'{len(patient_records)} patient(s) loaded from the saved queue. '
+                    'Reservations are not restored.')
+else:
+    startup_text = 'Complete the required fields to generate a queue ID.'
+result_label = ttk.Label(form, text=startup_text, wraplength=390)
 # Row 10 is reserved for the button constructed after its callback definition.
 result_label.grid(row=11, column=0, sticky='w', pady=(12, 0))
 
@@ -192,14 +244,16 @@ def assign_selected():
     if not selected:
         assignment_message.config(text='Select a waiting case in the table first.')
         return
-    # The iid we set while registering is the full queue ID. Look up its record
-    # in our list instead of trusting text copied from the displayed columns.
-    record = next(item for item in patient_records if item['queue_id'] == selected[0])
+    # The iid we set while registering is date|ticket. Look up its record in our
+    # list instead of trusting text copied from the displayed columns.
+    record = next(item for item in patient_records if row_key(item) == selected[0])
     try:
         reservation = assign_patient(record, rooms, doctors, assignments)
     except ValueError as error:
         assignment_message.config(text=str(error))
         return
+    # Only the visible cell changes. The reservation is not written to the
+    # database: nothing can release it yet, so it lasts for this session only.
     queue_table.set(selected[0], 'assignment', f"{reservation['room_id']} / {reservation['doctor_id']}")
     # Say what was reserved and why it was that pair. A reservation lasts for
     # this session; nothing here releases a resource when a session finishes.
@@ -241,15 +295,24 @@ def add_case():
     # append changes the EXISTING list; no global declaration is needed because
     # we do not assign a new object to patient_records. The list order records
     # registration order. The random ID is not a priority or sequence number.
+    # Save to disk BEFORE showing success. If the write fails, the user is told
+    # and no row appears, so the table never claims something was stored that
+    # was not. The record is only added to the in-memory list after the write
+    # succeeds, keeping the list and the database in step.
+    try:
+        storage.save_registration(database, record)
+    except ValueError as error:
+        result_label.config(text=str(error))
+        return
+
+    # append changes the EXISTING list; no global declaration is needed because
+    # we do not assign a new object to patient_records. The list order records
+    # registration order. The random ID is not a priority or sequence number.
     patient_records.append(record)
-    queue_table.insert(
-        '', 'end', iid=record['queue_id'],
-        values=(record['queue_id'], record['destination_ward'], record['appointment_date'], 'Waiting'),
-    )
-    # '' means a top-level row, 'end' appends it, and iid is the unique row key.
-    # see scrolls the new row into view if the table has become longer.
-    queue_table.see(record['queue_id'])
-    result_label.config(text=f"Last registered: {record['queue_id']}\n{len(patient_records)} patient(s) in this session.")
+    add_queue_row(record)
+    result_label.config(
+        text=f"Last registered: {record['queue_id']} on {record['appointment_date']}.\n"
+             f'{len(patient_records)} patient(s) saved.')
 
     # Clear person-specific fields only AFTER storing, leaving ward/date ready
     # for the next case. A second click now fails name validation, rather than

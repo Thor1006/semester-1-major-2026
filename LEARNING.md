@@ -38,6 +38,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Next after practice: time-slot scheduling in lesson 4. Completion/release and persistence remain later increments.
 - Removed on 2026-09-08 at your request: the lesson 3 machine-learning extension, its simulated history, and its walkthrough. Assignment now takes the first compatible free room and doctor in configured order. The project needs no extra packages again.
 - Preparation for lesson 6 (persistence), 2026-09-08: ticket uniqueness is now scoped to one appointment date, so each ward gets a fresh pool of 100 suffixes every day. Without this, saving records to disk would have capped a ward at 100 patients forever rather than 100 per day. The trade-off to remember: a ticket alone no longer identifies a registration, so the date plus the ticket is the key.
+- Implemented and checked, 2026-09-08: lesson 6 persistence. Registrations are saved to a local SQLite file and restored on startup; reservations are not. Built ahead of lessons 4 and 5 because you asked for it; time-slot scheduling and the release lifecycle are still missing. Your lesson 6 practice is pending.
 - No hardware checks are complete.
 
 ## First lesson's target
@@ -200,3 +201,133 @@ The callback runs on the one Tkinter UI thread, so a second click is processed a
 **Your practice exercise.** In `app.py`, immediately after `rooms, doctors = make_demo_resources()`, add `doctors[0]['enabled'] = False`. Save and restart. The resource tab should show the first doctor as Unavailable. Assign two cases in General medicine: the first should get a room and the remaining enabled doctor; the second should stay Waiting with a no-doctor message, even though a room is still available. Explain which check caused this and why the room was not reserved. Remove your temporary line to restore the two-doctor demonstration.
 
 **Current limits to remember.** The app tracks tickets rather than permanent patient identities; two registrations for the same person are not recognized as one patient. It does not use name matching as proof of identity. Reservation release, shifts, time intervals, priority, and persistence are future lessons. Closing the app resets all current state.
+
+
+### Lesson 6: remembering the queue after the window closes
+
+**Status:** implemented and checked; independent practice pending. Read `storage.py` first,
+then the three places `app.py` uses it: the two lines near the top that open the database and
+load records, `add_queue_row`, and the save inside `add_case`.
+
+**Run it:**
+
+```powershell
+& 'C:\ProgramData\miniconda3\python.exe' app.py
+```
+
+**What this increment means.** Until now every registration lived in a Python list, and
+closing the window destroyed it. The list was the only copy. This lesson gives the project
+its first memory that outlives the process: register a patient, close the app completely,
+open it again, and the queue is still there.
+
+**What is saved, and what deliberately is not.** Registrations are saved. Room and doctor
+reservations are not. That is not laziness, it is a consequence of what the project can do:
+nothing here can END a reservation. There is no session completion, no release step. If a
+reservation were saved, tomorrow it would come back still holding a room, and no part of the
+program could free it. It would look like a feature and behave like a bug. Every loaded case
+therefore starts as Waiting, and the startup message says so.
+
+**Why SQLite.** It is in Python's standard library, so no new dependency is needed, and the
+whole database is one ordinary file you can delete to start over. A CSV would also work, but
+SQLite gives us the uniqueness rule for free and will not leave a half-written record behind
+if the program stops mid-write.
+
+**A table is a shape you declare once.** `CREATE TABLE IF NOT EXISTS` describes the columns
+and the rules. `IF NOT EXISTS` is what makes it safe to run at every startup instead of only
+the first one. `TEXT NOT NULL` means the column holds text and may never be empty of a value
+(an empty string is still a value; `NULL` is the absence of one).
+
+**The most important line in the file.**
+
+```sql
+UNIQUE (appointment_date, queue_id)
+```
+
+That is the ticket rule from `registration.py`, written where the DATABASE can enforce it.
+A ticket is only unique within one appointment date, so `Q0147` may exist on the 8th and
+again on the 9th, but never twice on the same day. Even a bug elsewhere in the program
+cannot write a duplicate: SQLite refuses the insert. A rule enforced in one place only is a
+rule waiting to be broken by the second piece of code that forgets it.
+
+**Order needs its own column.** `row_id INTEGER PRIMARY KEY` is filled in automatically and
+increases with each insert. Without it, `SELECT` makes no promise at all about the order rows
+come back in, and the queue would reshuffle itself every restart. Date plus ticket identifies
+a row but cannot tell us which arrived first.
+
+**Never build SQL by joining strings.** Look at the `?` marks in `save_registration`:
+
+```python
+connection.execute('INSERT INTO registrations (...) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                   (record['appointment_date'], record['queue_id'], ...))
+```
+
+Each `?` is a PLACEHOLDER. SQLite substitutes the value itself, with correct quoting. Had we
+written `f"... VALUES ('{name}')"`, a patient named `O'Brien` would break the statement, and
+in a networked system the same habit is the classic SQL-injection vulnerability. There is a
+test for the apostrophe case.
+
+**`commit` is what makes it permanent.** Until `connection.commit()` runs, an insert lives
+only inside this connection's transaction and would vanish if the program stopped. We commit
+after each registration rather than at shutdown, so a crash cannot lose the queue.
+
+**Loading must be invisible.** `load_registrations` returns plain dictionaries with exactly
+the keys `create_patient_record` produces. That is the point: the rest of the program cannot
+tell a loaded record from a fresh one, so `patient_records` simply starts full instead of
+empty, and ticket generation automatically avoids the tickets already saved for that date.
+
+**One consequence in the interface.** The queue table identifies each row by an `iid`. That
+used to be the queue ID, which was fine while tickets were unique. Now that `Q0147` can exist
+on two dates, using the ticket alone would make Tkinter refuse the second row outright. Hence
+`row_key(record)`, which returns `"2026-09-08|Q0147"`: the same key the database uses.
+
+**Save before you celebrate.** In `add_case`, the record is written to the database BEFORE it
+is added to the list and the table. If the write fails, the user sees the error and no row
+appears. The reverse order would let the table claim a patient was stored when they were not
+--- the worst kind of bug in a system whose whole job is remembering.
+
+**Trace one registration through.**
+
+| Step | What happens |
+| --- | --- |
+| You click Register | `add_case` reads the fields |
+| `create_patient_record` | validates, and picks a ticket unused *on that date* |
+| `storage.save_registration` | inserts the row with placeholders, then commits |
+| The list and table | the record is appended and a row appears, keyed `date|ticket` |
+| You close the app | the process ends; the file remains |
+| You reopen it | `storage.connect` opens the file, `load_registrations` refills the list, and `add_queue_row` rebuilds every row as Waiting |
+
+**Where the file lives.** `Path(__file__).resolve().parent / 'clinic.db'` puts the database
+next to the source, whichever folder you launched from. Writing `C:\Users\...` there would
+break the project on any other computer. `.gitignore` already excludes `*.db`, so patient
+records are never committed to version control even by accident.
+
+**Your practice exercise.** Add a `registered_at` column recording when each registration was
+made, and show it in the queue table. **Hint:** three places change. Add the column to
+`SCHEMA` in `storage.py`, add it to the `INSERT` and the `SELECT` (and to `FIELDS`), and add
+a column to `queue_table`. For the value, `from datetime import datetime` and
+`datetime.now().isoformat(timespec='seconds')`. Then delete `clinic.db` and run the app
+again --- and think about why deleting it was necessary, which is the next paragraph.
+
+**The trap you just met.** `CREATE TABLE IF NOT EXISTS` does nothing when the table already
+exists, even if your `SCHEMA` has changed. Adding a column to the text does not add it to a
+file created yesterday, and you get a confusing error about a missing column. Real projects
+solve this with MIGRATIONS: recorded, ordered changes applied to an existing database.
+Deleting the file is the crude version, and acceptable here only because the data is
+fictional.
+
+**Common mistakes**
+
+| Mistake | Consequence | Correct approach here |
+| --- | --- | --- |
+| Forgetting `commit()` | The insert disappears when the program ends. | Commit after each save. |
+| Building SQL with f-strings | An apostrophe in a name breaks the statement; in a real system it is an injection hole. | Use `?` placeholders. |
+| `SELECT` without `ORDER BY` | The queue order changes unpredictably between restarts. | Order by `row_id`. |
+| Keying the table row by ticket alone | Tkinter refuses the second row when a ticket recurs on another date. | Use `row_key(record)`. |
+| Saving reservations too | A restored reservation holds a room forever, because nothing can release it. | Save registrations only, until lesson 5 exists. |
+| Running the checks against `clinic.db` | Test patients end up in your real saved queue. | The checks point `storage.DATABASE_PATH` at a temporary file. |
+
+**Current limits to remember.** Only registrations persist. There is still no time-slot
+scheduling (lesson 4), no completion or release (lesson 5), no way to edit or delete a saved
+registration from inside the app, and no migrations. The app opens one database connection
+and writes on the interface thread; that is fine at this size, but a slow or networked
+database would need the work moved off the event loop.
