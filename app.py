@@ -17,6 +17,7 @@ from tkinter import filedialog, messagebox, ttk
 # ID generation; this file owns the visible interface and its event handling.
 from registration import WARD_CODES, create_patient_record
 from assignment import (DEFAULT_CAPACITY, MAX_PER_WARD, assign_patient,
+                        assign_patient_to, auto_assign, available_resources,
                         blocking_reservations, make_demo_resources)
 from bulk_import import REQUIRED_COLUMNS, read_import_file
 import storage
@@ -177,6 +178,19 @@ queue_scroll.grid(row=1, column=1, sticky='ns')
 queue_table.configure(yscrollcommand=queue_scroll.set)
 
 
+def assignment_text(record):
+    """What the Assignment column should say for one record.
+
+    Reservations are keyed by ticket alone, which is only safe because just
+    today's cases can hold one. The date check stops an identical ticket on
+    another date borrowing today's reservation for display.
+    """
+    reservation = assignments.get(record['queue_id'])
+    if reservation and record['appointment_date'] == date.today().isoformat():
+        return f"{reservation['room_id']} / {reservation['doctor_id']}"
+    return 'Waiting'
+
+
 def add_queue_row(record):
     """Put one registration in the table and scroll it into view.
 
@@ -188,10 +202,23 @@ def add_queue_row(record):
     queue_table.insert(
         '', 'end', iid=row_key(record),
         values=(record['queue_id'], record['destination_ward'],
-                record['appointment_date'], 'Waiting'),
+                record['appointment_date'], assignment_text(record)),
     )
     # see scrolls the row into view if the table has become longer.
     queue_table.see(row_key(record))
+
+
+def refresh_queue_assignments():
+    """Rewrite every Assignment cell from the reservation dictionary.
+
+    Automatic assignment changes many rows at once, so rebuilding the column
+    from the actual state is simpler and safer than trying to remember which
+    rows were touched. It is also idempotent: running it twice is harmless.
+    """
+    for record in patient_records:
+        key = row_key(record)
+        if queue_table.exists(key):
+            queue_table.set(key, 'assignment', assignment_text(record))
 
 
 # Show everything read back from the database. Assignment state is not restored,
@@ -400,7 +427,7 @@ def assign_selected():
         return
     # Only the visible cell changes. The reservation is not written to the
     # database: nothing can release it yet, so it lasts for this session only.
-    queue_table.set(selected[0], 'assignment', f"{reservation['room_id']} / {reservation['doctor_id']}")
+    refresh_queue_assignments()
     # Say what was reserved and why it was that pair. A reservation lasts for
     # this session; nothing here releases a resource when a session finishes.
     assignment_message.config(
@@ -574,8 +601,130 @@ def clear_all():
     result_label.config(text=f'Cleared {removed} saved registration(s).')
 
 
-assign_button = ttk.Button(queue_panel, text='Assign selected case', command=assign_selected)
-assign_button.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(12, 0))
+def manual_assign():
+    """Let a staff member choose which room and doctor a case gets.
+
+    The chooser is built from `available_resources`, the same function the rule
+    uses, so it can never offer a pair that would then be refused. Manual mode
+    overrides WHICH pair is used, never WHETHER the pair is legal: a staff
+    member knows things the program does not, but still cannot put two patients
+    in one room.
+    """
+    record = selected_record()
+    if record is None:
+        assignment_message.config(text='Select the case to assign first.')
+        return
+    if record['queue_id'] in assignments:
+        assignment_message.config(text=f"{record['queue_id']} already has an assignment.")
+        return
+    if record['appointment_date'] != date.today().isoformat():
+        assignment_message.config(
+            text='Only cases dated today can be assigned right now.')
+        return
+
+    ward = record['destination_ward']
+    free_rooms, free_doctors = available_resources(ward, rooms, doctors, assignments)
+    if not free_rooms or not free_doctors:
+        missing = 'room' if not free_rooms else 'doctor'
+        assignment_message.config(
+            text=f'No available {missing} in {ward}. Nothing to choose from.')
+        return
+
+    chooser = tk.Toplevel(window)
+    chooser.title(f"Assign {record['queue_id']}")
+    chooser.transient(window)
+    chooser.resizable(False, False)
+    body = ttk.Frame(chooser, padding=18)
+    body.pack(fill='both', expand=True)
+    body.columnconfigure(1, weight=1)
+
+    ttk.Label(body, text=f"{record['queue_id']} - {record['patient_name']}",
+              font=('Segoe UI', 12, 'bold')).grid(row=0, column=0, columnspan=2,
+                                                  sticky='w', pady=(0, 4))
+    ttk.Label(body, text=f'{ward}, {record["appointment_date"]}').grid(
+        row=1, column=0, columnspan=2, sticky='w', pady=(0, 14))
+
+    ttk.Label(body, text='Room').grid(row=2, column=0, sticky='w', padx=(0, 10), pady=4)
+    room_choice = ttk.Combobox(body, state='readonly', width=24,
+                               values=[room['id'] for room in free_rooms])
+    room_choice.grid(row=2, column=1, sticky='ew', pady=4)
+    room_choice.current(0)
+
+    ttk.Label(body, text='Doctor').grid(row=3, column=0, sticky='w', padx=(0, 10), pady=4)
+    doctor_choice = ttk.Combobox(body, state='readonly', width=24,
+                                 values=[doctor['id'] for doctor in free_doctors])
+    doctor_choice.grid(row=3, column=1, sticky='ew', pady=4)
+    doctor_choice.current(0)
+
+    problem = ttk.Label(body, text='', wraplength=300)
+    problem.grid(row=4, column=0, columnspan=2, sticky='w', pady=(10, 0))
+
+    def confirm():
+        try:
+            reservation = assign_patient_to(record, rooms, doctors, assignments,
+                                            room_choice.get(), doctor_choice.get())
+        except ValueError as error:
+            # The list could have gone stale if something else took a resource
+            # while this window was open, so the rule still gets the last word.
+            problem.config(text=str(error))
+            return
+        refresh_queue_assignments()
+        refresh_resources()
+        assignment_message.config(
+            text=f"Reserved {reservation['room_id']} / {reservation['doctor_id']} "
+                 f"for {record['queue_id']}, chosen manually.")
+        chooser.destroy()
+
+    buttons = ttk.Frame(body)
+    buttons.grid(row=5, column=0, columnspan=2, sticky='ew', pady=(14, 0))
+    buttons.columnconfigure(0, weight=1)
+    buttons.columnconfigure(1, weight=1)
+    ttk.Button(buttons, text='Assign', command=confirm).grid(row=0, column=0,
+                                                             sticky='ew', padx=(0, 4))
+    ttk.Button(buttons, text='Cancel', command=chooser.destroy).grid(row=0, column=1,
+                                                                     sticky='ew',
+                                                                     padx=(4, 0))
+    chooser.grab_set()
+
+
+def auto_assign_all():
+    """Serve every waiting case for today in arrival order: first come, first served."""
+    # patient_records is kept in arrival order, and the database reloads it in
+    # that order too, so walking the list front to back IS the queue discipline.
+    # The random part of a ticket says nothing about position.
+    result = auto_assign(patient_records, rooms, doctors, assignments)
+    refresh_queue_assignments()
+    refresh_resources()
+
+    if not result['assigned'] and not result['waiting']:
+        assignment_message.config(
+            text='Nothing to assign. Every case dated today already has a room and doctor.')
+        return
+
+    if result['assigned']:
+        text = f"Assigned {len(result['assigned'])} case(s) in arrival order."
+    else:
+        # "Assigned 0 case(s)" reads as though the button half-worked. Say
+        # plainly that nothing could be done.
+        text = 'Nothing could be assigned.'
+    if result['waiting']:
+        # Name the first blocked case and its reason. A bare count tells staff
+        # that something is wrong without telling them what to do about it.
+        first_id, reason = result['waiting'][0]
+        text += f" {len(result['waiting'])} still waiting - {first_id}: {reason}"
+    assignment_message.config(text=text)
+
+
+assign_row = ttk.Frame(queue_panel)
+assign_row.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(12, 0))
+for index in range(3):
+    assign_row.columnconfigure(index, weight=1)
+assign_button = ttk.Button(assign_row, text='Assign selected', command=assign_selected)
+assign_button.grid(row=0, column=0, sticky='ew', padx=(0, 4))
+manual_button = ttk.Button(assign_row, text='Choose room/doctor...', command=manual_assign)
+manual_button.grid(row=0, column=1, sticky='ew', padx=4)
+auto_button = ttk.Button(assign_row, text='Auto-assign all', command=auto_assign_all)
+auto_button.grid(row=0, column=2, sticky='ew', padx=(4, 0))
 
 # A child frame keeps these four buttons on one row without giving the whole
 # queue panel four columns to align against.

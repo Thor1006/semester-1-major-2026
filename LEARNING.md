@@ -41,6 +41,7 @@ The aim is to explain and recreate the behavior, not memorize the finished sourc
 - Implemented and checked, 2026-09-08: lesson 6 persistence. Registrations are saved to a local SQLite file and restored on startup; reservations are not. Built ahead of lessons 4 and 5 because you asked for it; time-slot scheduling and the release lifecycle are still missing. Your lesson 6 practice is pending.
 - Implemented and checked, 2026-09-08: bulk CSV import, deleting one registration, clearing all of them, and a double-click details window. Your practice for this step is pending.
 - Implemented and checked, 2026-09-08: configurable capacity per ward, saved between runs, with reductions refused when they would delete a reserved resource; and taking an individual room or doctor out of service. Your practice for this step is pending.
+- Implemented and checked, 2026-09-08: manual assignment of a chosen room and doctor, and automatic assignment of every waiting case in arrival order. Your practice for this step is pending.
 - No hardware checks are complete.
 
 ## First lesson's target
@@ -550,3 +551,124 @@ there are no opening hours, shifts, or part-time doctors. A doctor still support
 one ward, even though the data structure holds a list. `MAX_PER_WARD` is an interface
 guard, not a hospital rule. Removing a ward entirely, or renaming one, still means editing
 `WARD_CODES` in the source.
+
+
+### Lesson 6 extension: choosing a pair, and serving the queue in order
+
+**Status:** implemented and checked; practice pending. Read `check_case_is_assignable`,
+`available_resources`, `assign_patient_to` and `auto_assign` in `assignment.py`, then
+`manual_assign` and `auto_assign_all` in `app.py`.
+
+One assignment rule was never going to be enough. First fit is predictable but blind: it
+cannot know that this patient saw Doctor 2 last month, or that Room 1 has the equipment
+this case needs. And assigning a full waiting room one click at a time is tedious. So there
+are now three modes --- and the interesting design work is making sure they cannot
+contradict each other.
+
+**Shared checks are what keep three modes honest.** Before this increment, all the
+eligibility logic lived inside `assign_patient`. Adding two more modes by copying it would
+have created three places to fix every future rule change, and they would drift. Instead
+two helpers were extracted:
+
+- `check_case_is_assignable` --- is this case eligible at all? (not already assigned, dated
+  today) and returns its ward.
+- `available_resources` --- which rooms and doctors in that ward are free, enabled and
+  compatible?
+
+`assign_patient` now reads as four short lines on top of those, and the other two modes
+build on exactly the same foundation. **A rule stated once cannot disagree with itself.**
+
+**Manual mode overrides the choice, not the rules.** This is the distinction worth
+understanding. A staff member genuinely knows things the program does not, so they may pick
+any pair --- but they still cannot put two patients in one room, use a room from another
+ward, or take a room that is out of service. `assign_patient_to` therefore validates its
+arguments exactly as strictly as first fit validates its own choice.
+
+The chooser is built from `available_resources`, the same function the rule uses, so it
+**cannot offer something that would then be refused**. That is worth doing deliberately: an
+interface that offers an option and then rejects it teaches users to distrust it. The check
+still runs on confirm, because the window could have been open while something else took a
+resource.
+
+**Refusals name the actual reason.** `_explain_choice` works out *why* a chosen resource is
+unusable rather than saying "not available":
+
+| Situation | Message |
+| --- | --- |
+| No such resource | `R01-9 is not a room in this clinic.` |
+| Wrong ward | `R02-1 does not serve General medicine.` |
+| Maintenance | `R01-1 is out of service.` |
+| Taken | `R01-1 is already reserved by Q0107.` |
+
+The last one is the most useful: it names the ticket holding the room, so staff know whose
+case to look at. "Not available" would leave them guessing.
+
+**Automatic mode is first come, first served.** `auto_assign` walks `patient_records` from
+front to back. That list is kept in arrival order, and `ORDER BY row_id` reloads it in the
+same order after a restart, so **walking the list IS the queue discipline** --- no sorting
+step is needed or wanted.
+
+The thing to be careful about: **the ticket is not a position.** `Q0199` may have arrived
+before `Q0102`, because the two digits are random. Sorting the queue by ticket would look
+sensible and quietly serve people in the wrong order. There is a test whose tickets descend
+precisely so that an implementation which sorted them would fail.
+
+**One blocked case must not stop the rest.** A case that cannot be served is recorded with
+its reason and the loop continues:
+
+```python
+except ValueError as error:
+    waiting.append((queue_id, str(error)))
+```
+
+Without this, a full General medicine would leave Pediatrics patients unserved even with
+rooms standing empty. The return value separates `assigned` from `waiting`, so the
+interface can report both.
+
+**Filling gaps is not the same as rescheduling.** `auto_assign` skips any case that already
+has a reservation, so a pair you chose by hand survives a later automatic run untouched.
+`AGENTS.md` requires that staff explicitly apply changes to existing assignments; silently
+"optimising" a manual choice would break that, and would also make the button unsafe to
+press twice. Running it twice assigns nothing the second time.
+
+**Rebuild the column, do not patch it.** Automatic assignment changes many rows at once, so
+`refresh_queue_assignments` rewrites every Assignment cell from the reservation dictionary
+rather than trying to remember which rows changed. It is idempotent, and it removed a small
+duplication: first-fit assignment now uses it too.
+
+**Trace an automatic run.** Three General medicine cases and one Pediatrics case arrive,
+with two rooms and two doctors per ward. The first case was already given `R01-2 / D01-2`
+by hand.
+
+| Case | What happens |
+| --- | --- |
+| First (manual) | skipped: it already holds a reservation |
+| Second | first fit gives it `R01-1 / D01-1`, the remaining General medicine pair |
+| Third | no free room in General medicine; recorded as waiting, with the reason |
+| Fourth | Pediatrics is untouched, so it gets `R02-1 / D02-1` |
+
+Result: two assigned, one waiting, and the manual choice unchanged.
+
+**Your practice exercise.** Add a **Release** button that frees the selected case's room and
+doctor, returning it to Waiting. **Hint:** it is `assignments.pop(queue_id, None)`, then
+`refresh_queue_assignments()` and `refresh_resources()`. Two questions to think about
+first: should releasing be allowed for a case dated other than today, and should it ask for
+confirmation the way Delete does? This exercise is the first half of the completion
+lifecycle the project still lacks.
+
+**Common mistakes**
+
+| Mistake | Consequence | Correct approach here |
+| --- | --- | --- |
+| Copying the eligibility checks into each mode | Three copies drift apart as rules change. | Share `check_case_is_assignable` and `available_resources`. |
+| Letting manual mode skip validation | Two patients end up in one room. | Override the choice, never the rules. |
+| Offering every resource in the chooser | The interface suggests options it then refuses. | Populate from `available_resources`. |
+| Sorting the queue by ticket | Patients are served in random order while looking sorted. | Walk the list in arrival order. |
+| Stopping the run at the first failure | A full ward blocks every other ward. | Record the reason and continue. |
+| Reassigning cases that already hold a pair | A manual choice is silently overwritten. | Skip cases already in `assignments`. |
+| Patching single cells after a bulk change | Rows drift out of step with the real state. | Rebuild the column from `assignments`. |
+
+**Current limits to remember.** There is still no way to RELEASE a reservation (that is
+your exercise) and no completion step, so a room stays held until the app closes.
+Assignment remains same-day and immediate: no time slots, no shifts, no clinical urgency.
+Auto-assign has no preview --- it applies immediately rather than proposing a plan.

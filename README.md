@@ -23,6 +23,18 @@ Registration accepts patient name, optional medical information, appointment dat
 
 **Reservations are not saved, only registrations.** Nothing in the project can end a reservation yet, so a restored one would hold a room with no way to free it. Every case therefore comes back as Waiting. The database file stays on this computer, is excluded from version control, and is never transmitted anywhere.
 
+### Assigning cases
+
+Three buttons sit under the queue table:
+
+- **Assign selected** takes the first compatible free room and doctor, in configured order.
+- **Choose room/doctor...** opens a chooser listing only the rooms and doctors that are actually available for that case's ward, so you can pick a specific pair. The rules still apply: you can override which pair is used, not whether it is legal.
+- **Auto-assign all** serves every waiting case dated today in **arrival order** - first come, first served - and reports how many were assigned and why the first blocked case could not be.
+
+Arrival order means the order cases were registered, which is the order the queue table shows and the order they are reloaded from the database. **The random part of a ticket is not a position**: `Q0199` may well have arrived before `Q0102`.
+
+Auto-assign fills gaps; it never reshuffles work already done. A pair you chose by hand stays exactly as you set it, and a full ward does not stop a different ward being served.
+
 ### Changing capacity
 
 The **Rooms and doctors** tab configures how many rooms and doctors each ward has. Choose a ward, set the two numbers, and click **Apply**. The change is saved, so it survives a restart. Every ward starts with two of each.
@@ -78,9 +90,9 @@ Earlier lessons are preserved in `lessons/lesson_01.py` and `lessons/lesson_02/`
 Run the registration and assignment checks from this folder with:
 
 ```powershell
-& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py
+& 'C:\ProgramData\miniconda3\python.exe' -m unittest -v test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py test_assignment_modes.py
 ```
 
-That runs 74 checks covering registration, queue IDs, assignment, saving, deleting, CSV import, and capacity. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
+That runs 93 checks covering registration, queue IDs, assignment, saving, deleting, CSV import, capacity, and the manual and automatic assignment modes. The checks use temporary files, so running them never touches your saved queue. The detailed teaching walkthroughs are in `LEARNING.md`.
 
 For future Codex sessions, open this folder as the working project so its `AGENTS.md` is discovered at startup. If working from the parent workspace, explicitly read `preview-1-prime/AGENTS.md` before editing this project.

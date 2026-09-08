@@ -57,6 +57,38 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-08 - Claude Code (Opus 5) - Manual and automatic assignment
+
+- The user asked for manual assignment and automatic assignment in arrival order. Both are
+  built, alongside the existing first-fit button.
+- Refactored first: `check_case_is_assignable` and `available_resources` were extracted from
+  `assign_patient`, which now sits on top of them. All three modes share those checks, so
+  they cannot drift apart as rules change. `assign_patient` keeps its signature, and the
+  28 existing assignment/capacity tests passed unchanged after the refactor.
+- `assign_patient_to` takes a chosen room and doctor. Manual mode overrides WHICH pair is
+  used, never WHETHER it is legal. `_explain_choice` gives the specific reason for a
+  refusal: unknown resource, wrong ward, out of service, or the ticket already holding it.
+- The chooser is populated from `available_resources`, the same function the rule uses, so
+  it cannot offer a pair that would then be refused; the rule still runs on confirm in case
+  the window was open while something else took a resource.
+- `auto_assign` walks `patient_records` front to back. That list is in arrival order and
+  `ORDER BY row_id` reloads it that way, so no sorting step is needed. THE TICKET IS NOT A
+  POSITION - one test uses descending tickets so an implementation that sorted them fails.
+- A blocked case is recorded with its reason and does not stop the run, so a full ward never
+  blocks another. Cases already holding a reservation are skipped, so a manual choice
+  survives a later auto run and pressing the button twice is safe.
+- `refresh_queue_assignments` rebuilds the whole Assignment column from `assignments`
+  instead of patching single cells; first-fit assignment now uses it too.
+- Verified: 93 tests pass (19 new in `test_assignment_modes.py`). Also driven through the
+  real widgets: the chooser offered only free resources, a manual pick took R01-2/D01-2
+  rather than first-fit, a later auto run served the remainder in arrival order and left the
+  manual pair alone, Pediatrics was still served while General medicine was full, a second
+  auto run assigned nothing, and manual assignment on a full ward reported it clearly.
+  Window bounds 969x664; fits both sizes.
+- Not built: releasing a reservation (set as the practice exercise), completion, time slots,
+  shifts, clinical urgency, or an auto-assign preview - it applies immediately rather than
+  proposing a plan.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Configurable capacity
 
 - The user asked for a way to change the capacity of the whole system. Rooms and doctors
