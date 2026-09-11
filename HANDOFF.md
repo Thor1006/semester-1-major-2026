@@ -57,6 +57,24 @@ record is the main way the two assistants drift apart.
 
 Newest first. One short entry per session: what changed, what was verified, what was not.
 
+### 2026-09-11 - Claude Code (Opus 5) - Presentation slides
+
+- The user asked for presentation slides related to the files in this folder. Added
+  `presentation/slides.html`, a 17-slide self-contained HTML deck. Each slide's header names
+  the source file it draws from (`registration.py`, `assignment.py`, `storage.py`, ...).
+- Content was taken from the code and the owning documents, not from memory: ticket format,
+  validation rules, the app's actual refusal messages, the SQLite schema, capacity bounds
+  (0-12 from `MAX_PER_WARD`), line counts, and the lesson timeline from git history. Built,
+  planned, optional and removed features are labelled separately; the ML removal is stated.
+- The CSV slide shows only the three clean fictional rows of `sample_import.csv`, with one
+  date altered to 2026-02-30 and labelled as an example. The file's other rows were left out
+  of the deck and NOT edited; the user should review them before any live demo.
+- Arrow keys / space / buttons navigate; the hash (`#5`) keeps the slide; narrow screens show
+  the slides stacked; printing gives one 1280x720 page per slide for a PDF.
+- Verified: 110 test methods counted across the seven test files, matching the slide. The full
+  test run was started but backgrounded by the user and had not reported when this was
+  written, so a passing run was NOT observed this session. No application code changed.
+
 ### 2026-09-08 - Claude Code (Opus 5) - Finished cases: mark done and archive
 
 - The user asked for a button to archive or mark a case done. This is roadmap lesson 5's
