@@ -77,8 +77,16 @@ Newest first. One short entry per session: what changed, what was verified, what
   app's own English error messages are kept verbatim, each message with a Thai gloss. A small
   script shrinks any slide whose content exceeds 720px, since the layout was not seen.
 - Verified: 110 test methods counted across the seven test files, matching the slide. The full
-  test run was started but backgrounded by the user and had not reported when this was
-  written, so a passing run was NOT observed this session. No application code changed.
+  suite then reported 110 run, 1 FAILURE: `test_the_bundled_sample_file_imports_cleanly`
+  expects `sample_import.csv` to yield 5 records, but the user's commit `802d6dd`
+  (2026-09-11) changed it to 6 rows, several of them unsuitable for a demo. Not fixed here:
+  the file is the user's edit, and the slides quote only its clean rows. The other 100
+  window-free tests pass in about 1.4 seconds. No application code changed.
+- The same full run took about 2.4 hours. `test_registration.py`'s window test mocks only
+  `messagebox.showinfo`, but `app.py` now also calls `messagebox.showwarning` for a refused
+  registration and a failed assignment, and the test triggers both on purpose. Real warning
+  dialogs therefore open and wait for a click. Patching `app.messagebox.showwarning` in that
+  test would stop it blocking; not changed here, as it was outside the slides request.
 
 ### 2026-09-08 - Claude Code (Opus 5) - Finished cases: mark done and archive
 
