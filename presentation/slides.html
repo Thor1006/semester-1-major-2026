@@ -1,11 +1,11 @@
 <title>Outpatient Front Desk</title>
-<meta name="description" content="Presentation slides for the outpatient scheduling assistant student project.">
+<meta name="description" content="สไลด์นำเสนอโครงงานผู้ช่วยจัดคิวผู้ป่วยนอก">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@700;800&display=swap">
-<script>document.documentElement.classList.add('js')</script>
+<script>document.documentElement.classList.add('js'); document.documentElement.lang = 'th';</script>
 <style>
 /* ---------- Tokens ---------------------------------------------------- */
 :root {
@@ -18,13 +18,14 @@
   /* The queue board is a physical object: it stays dark in both themes. */
   --board: #0B0F0E;  --board-edge: #2A322F; --led: #FF7A3D; --led-dim: #B0643F;
 
-  --display: "Sofia Sans Extra Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
-  --body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, "Segoe UI", sans-serif;
-  --mono: "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Thai convention: a loopless face for headings, a looped face for reading. */
+  --display: "Anuphan", "Leelawadee UI", "Tahoma", sans-serif;
+  --body: "Sarabun", "Leelawadee UI", "Tahoma", system-ui, sans-serif;
+  --mono: "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Mono", Consolas, "Sarabun", monospace;
 
   /* Reading-mode scale (phones); the deck scale below replaces it. */
-  --fs-title: 64px; --fs-h: 40px; --fs-lead: 19px; --fs-body: 17px;
-  --fs-small: 15px; --fs-label: 12px; --fs-led: 64px; --fs-ticket: 84px;
+  --fs-title: 52px; --fs-h: 34px; --fs-lead: 19px; --fs-body: 18px;
+  --fs-small: 16px; --fs-label: 13px; --fs-led: 64px; --fs-ticket: 84px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -51,17 +52,17 @@
 }
 @media print, screen and (min-width: 760px) and (min-height: 420px) {
   :root {
-    --fs-title: 128px; --fs-h: 64px; --fs-lead: 25px; --fs-body: 21px;
-    --fs-small: 17px; --fs-label: 14px; --fs-led: 132px; --fs-ticket: 176px;
+    --fs-title: 100px; --fs-h: 56px; --fs-lead: 24px; --fs-body: 22px;
+    --fs-small: 18px; --fs-label: 15px; --fs-led: 132px; --fs-ticket: 176px;
   }
 }
 
 /* ---------- Base (reading mode: slides stacked, for narrow screens) --- */
 html, body { background: var(--paper); color: var(--ink); }
-body { font-family: var(--body); font-size: var(--fs-body); line-height: 1.45; }
+body { font-family: var(--body); font-size: var(--fs-body); line-height: 1.55; }
 p, ul, ol, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
-code, .m { font-family: var(--mono); font-size: .88em; }
+code, .m { font-family: var(--mono); font-size: .86em; }
 b, strong { font-weight: 700; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
@@ -76,55 +77,58 @@ b, strong { font-weight: 700; }
 .slide-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .srcs { display: flex; flex-wrap: wrap; gap: 8px; }
 .src {
-  font-family: var(--mono); font-size: var(--fs-label); color: var(--muted);
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
   border: 1px solid var(--line); background: var(--raised);
-  border-radius: 4px; padding: 2px 8px;
+  border-radius: 4px; padding: 2px 8px; line-height: 1.5;
 }
-.kicker { font-size: var(--fs-label); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.num { font-family: var(--mono); font-size: var(--fs-label); color: var(--muted); }
+.kicker { font-size: var(--fs-label); font-weight: 700; letter-spacing: .03em; color: var(--muted); }
+.num { font-family: var(--mono); font-size: 13px; color: var(--muted); }
 .num::before { content: counter(slide, decimal-leading-zero); }
 
+/* Thai stacks vowels and tone marks above and below the line, so headings
+   need far more leading than a Latin display face would. */
 h1, h2 {
-  font-family: var(--display); font-weight: 800; margin: 0;
-  line-height: .95; letter-spacing: .004em; text-wrap: balance;
+  font-family: var(--display); font-weight: 700; margin: 0;
+  line-height: 1.2; letter-spacing: 0; text-wrap: balance;
 }
-h1 { font-size: var(--fs-title); }
-h2 { font-size: var(--fs-h); max-width: 24ch; }
-.lead { font-size: var(--fs-lead); color: var(--muted); max-width: 52ch; text-wrap: pretty; }
+h1 { font-size: var(--fs-title); line-height: 1.12; }
+h2 { font-size: var(--fs-h); }
+.lead { font-size: var(--fs-lead); color: var(--muted); max-width: 62ch; text-wrap: pretty; }
 .small { font-size: var(--fs-small); color: var(--muted); }
-.label { font-size: var(--fs-label); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.label { font-size: var(--fs-label); font-weight: 700; letter-spacing: .03em; color: var(--muted); }
+.en { font-family: var(--mono); font-size: var(--fs-label); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
 
 .scroll { overflow-x: auto; }
 
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
 th {
-  text-align: left; font-size: var(--fs-label); font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--muted);
-  padding: 0 18px 10px 0; border-bottom: 2px solid var(--ink);
+  text-align: left; font-size: var(--fs-label); font-weight: 700; letter-spacing: .03em;
+  color: var(--muted); padding: 0 18px 8px 0; border-bottom: 2px solid var(--ink);
 }
-td { padding: 13px 18px 13px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td { padding: 11px 18px 11px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
 
 .chip {
   display: inline-block; white-space: nowrap;
-  font-size: var(--fs-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-  padding: 3px 10px; border-radius: 999px; line-height: 1.3;
+  font-size: var(--fs-label); font-weight: 700; letter-spacing: .02em;
+  padding: 2px 12px; border-radius: 999px; line-height: 1.5;
 }
 .chip-built { background: var(--accent); color: var(--accent-ink); }
 .chip-next  { border: 1.5px solid var(--muted); color: var(--muted); }
 .chip-opt   { border: 1.5px dashed var(--muted); color: var(--muted); }
 
-.points { display: grid; gap: 16px; align-content: start; }
-.points li { display: grid; gap: 2px; padding-left: 18px; position: relative; }
-.points li::before { content: ""; position: absolute; left: 0; top: .55em; width: 7px; height: 7px; background: var(--accent); }
+.points { display: grid; gap: 14px; align-content: start; }
+.points li { display: grid; gap: 0; padding-left: 18px; position: relative; }
+.points li::before { content: ""; position: absolute; left: 0; top: .7em; width: 7px; height: 7px; background: var(--accent); }
 .points b { display: block; }
 .points span { color: var(--muted); font-size: var(--fs-small); }
 
 .msg {
-  font-family: var(--mono); font-size: var(--fs-small); line-height: 1.4;
+  font-family: var(--mono); font-size: 15px; line-height: 1.45;
   background: var(--raised); border: 1px solid var(--line); border-radius: 6px;
-  padding: 10px 14px; color: var(--ink);
+  padding: 8px 12px; color: var(--ink);
 }
 .msg-stop { border-color: var(--stop); background: var(--stop-soft); }
+.gloss { font-size: var(--fs-small); color: var(--muted); }
 
 pre.code {
   margin: 0; font-family: var(--mono); font-size: 15px; line-height: 1.55;
@@ -136,8 +140,8 @@ pre.code .dim { color: var(--muted); }
 
 /* ---------- Slide 1: title and queue board ---------------------------- */
 .title-grid { display: grid; gap: 28px; align-items: center; }
-.title-grid h1 { margin-bottom: 20px; }
-.stack { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 26px; font-size: var(--fs-small); color: var(--muted); }
+.title-grid h1 { margin: 10px 0 18px; }
+.stack { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 24px; font-size: var(--fs-small); color: var(--muted); }
 .stack li { display: flex; align-items: center; gap: 8px; }
 .stack li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 
@@ -145,8 +149,8 @@ pre.code .dim { color: var(--muted); }
   position: relative; overflow: hidden;
   background: var(--board); border-radius: 14px;
   box-shadow: inset 0 0 0 2px var(--board-edge), 0 18px 40px rgba(0,0,0,.22);
-  padding: 22px 26px 24px; color: var(--led-dim);
-  font-family: var(--mono); display: grid; gap: 14px;
+  padding: 20px 26px 22px; color: var(--led-dim);
+  display: grid; gap: 12px;
 }
 /* Dot-matrix screen: a grid of holes laid over the lit characters. */
 .board::after {
@@ -154,13 +158,13 @@ pre.code .dim { color: var(--muted); }
   background: radial-gradient(circle, transparent 0 1.15px, var(--board) 1.6px) 0 0 / 5px 5px;
   opacity: .6;
 }
-.board-top { display: flex; justify-content: space-between; font-size: var(--fs-label); letter-spacing: .16em; text-transform: uppercase; }
+.board-top { display: flex; justify-content: space-between; font-family: var(--body); font-weight: 700; font-size: var(--fs-small); }
 .led { color: var(--led); text-shadow: 0 0 14px rgba(255,122,61,.55); font-family: var(--mono); font-weight: 700; }
 .board-num { font-size: var(--fs-led); line-height: 1; letter-spacing: .03em; }
-.board-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--board-edge); padding-top: 14px; }
-.board-row small { display: block; font-size: var(--fs-label); letter-spacing: .16em; text-transform: uppercase; }
+.board-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 1px solid var(--board-edge); padding-top: 12px; }
+.board-row small { display: block; font-family: var(--body); font-weight: 700; font-size: var(--fs-small); }
 .board-row b { font-size: calc(var(--fs-led) * .34); }
-.board-cap { font-size: var(--fs-label); color: var(--muted); margin-top: 12px; max-width: 48ch; }
+.board-cap { font-size: var(--fs-label); color: var(--muted); margin-top: 12px; max-width: 52ch; }
 
 /* ---------- Slide 2: proposal map ------------------------------------- */
 .map td:first-child { color: var(--muted); }
@@ -168,45 +172,45 @@ pre.code .dim { color: var(--muted); }
 
 /* ---------- Slide 3: method and timeline ------------------------------ */
 .method { display: grid; gap: 10px; counter-reset: step; }
-.method li { counter-increment: step; border-top: 3px solid var(--accent); padding-top: 10px; }
-.method li::before { content: counter(step); font-family: var(--mono); font-size: var(--fs-label); color: var(--accent); font-weight: 700; margin-right: 8px; }
+.method li { counter-increment: step; border-top: 3px solid var(--accent); padding-top: 8px; }
+.method li::before { content: counter(step); font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 700; margin-right: 8px; }
 .method b { font-size: var(--fs-body); }
-.method span { display: block; font-size: var(--fs-small); color: var(--muted); }
+.method span { display: block; font-size: var(--fs-small); color: var(--muted); line-height: 1.4; }
 .days { display: grid; gap: 22px; }
-.day h3 { margin: 0 0 8px; font-family: var(--mono); font-size: var(--fs-small); color: var(--accent); font-weight: 700; }
-.day li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
+.day h3 { margin: 0 0 4px; font-family: var(--display); font-size: var(--fs-small); color: var(--accent); font-weight: 700; }
+.day li { padding: 5px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
 .day li .m { display: inline-block; min-width: 3.4em; color: var(--muted); }
 
 /* ---------- Slide 4: status columns ----------------------------------- */
 .status { display: grid; gap: 26px; }
-.status h3 { margin: 0 0 8px; }
-.status li { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
+.status h3 { margin: 0 0 6px; }
+.status li { padding: 5px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
 .status li .m { color: var(--muted); float: right; margin-left: 10px; }
-.removed { background: var(--off-soft); border-radius: 8px; padding: 16px 18px; font-size: var(--fs-small); color: var(--muted); display: grid; gap: 8px; }
+.removed { background: var(--off-soft); border-radius: 8px; padding: 14px 18px; font-size: var(--fs-small); color: var(--muted); display: grid; gap: 8px; }
 .removed b { color: var(--ink); }
 
 /* ---------- Slide 5: architecture ------------------------------------- */
 .arch { display: grid; gap: 20px; align-content: start; }
 .arch-app {
-  border: 2px solid var(--ink); border-radius: 8px; padding: 14px 18px;
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; background: var(--raised);
+  border: 2px solid var(--ink); border-radius: 8px; padding: 12px 18px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; background: var(--raised);
 }
 .arch-app code { font-size: var(--fs-body); font-weight: 700; }
 .arch-app em { font-style: normal; color: var(--accent); font-weight: 700; font-size: var(--fs-small); margin-left: auto; }
 .mods { display: grid; gap: 12px; }
-.mod { border: 1px solid var(--line); background: var(--raised); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
-.mod code { font-weight: 700; font-size: var(--fs-small); }
-.mod span { font-size: var(--fs-small); }
-.mod small { font-family: var(--mono); font-size: var(--fs-label); color: var(--muted); }
-.mod .db { margin-top: 4px; font-family: var(--mono); font-size: var(--fs-label); color: var(--accent); font-weight: 700; }
-.tests-band { border: 1.5px dashed var(--muted); border-radius: 8px; padding: 12px 16px; font-size: var(--fs-small); color: var(--muted); }
+.mod { border: 1px solid var(--line); background: var(--raised); border-radius: 8px; padding: 12px 16px; display: grid; gap: 2px; align-content: start; }
+.mod code { font-weight: 700; font-size: 16px; }
+.mod span { font-size: var(--fs-small); line-height: 1.45; }
+.mod small { font-size: var(--fs-label); color: var(--muted); }
+.mod .db { margin-top: 4px; font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 700; }
+.tests-band { border: 1.5px dashed var(--muted); border-radius: 8px; padding: 10px 16px; font-size: var(--fs-small); color: var(--muted); }
 .tests-band b { color: var(--ink); }
 
 /* ---------- Slide 6: ticket anatomy ----------------------------------- */
 .ticket-wrap { display: grid; gap: 28px; align-items: center; }
 .ticket {
   background: var(--raised); border: 1px solid var(--line); border-radius: 10px;
-  padding: 26px 34px 22px;
+  padding: 24px 34px 20px;
   /* punched notches on the left and right edges, like a paper queue slip */
   -webkit-mask: radial-gradient(circle 14px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
                 radial-gradient(circle 14px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
@@ -214,50 +218,50 @@ pre.code .dim { color: var(--muted); }
                 radial-gradient(circle 14px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
 }
 .ticket-code { display: grid; grid-template-columns: auto auto auto; justify-content: start; column-gap: 12px; }
-.seg { display: grid; gap: 10px; align-content: start; }
+.seg { display: grid; gap: 8px; align-content: start; }
 .seg .glyph { font-family: var(--mono); font-weight: 700; font-size: var(--fs-ticket); line-height: .9; padding-bottom: 8px; border-bottom: 6px solid; }
 .seg-q .glyph { border-color: var(--ink); }
 .seg-w .glyph { border-color: var(--accent); color: var(--accent); }
 .seg-r .glyph { border-color: var(--wait); }
 .seg span { font-size: var(--fs-label); color: var(--muted); line-height: 1.35; }
 .seg span b { display: block; color: var(--ink); font-size: var(--fs-small); }
-.ticket-foot { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: var(--fs-label); color: var(--muted); }
-.wards { margin-top: 16px; }
-.wards td { padding: 6px 14px 6px 0; font-size: var(--fs-small); border-bottom-color: var(--line); }
+.ticket-foot { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: var(--fs-label); color: var(--muted); }
+.wards { margin-top: 14px; }
+.wards td { padding: 5px 14px 5px 0; font-size: var(--fs-small); }
+.wards td small { color: var(--muted); font-size: 13px; margin-left: 6px; }
 .wards td.code { font-family: var(--mono); color: var(--accent); font-weight: 700; width: 3ch; }
 
 /* ---------- Slide 7: field rules -------------------------------------- */
 .fields td:first-child { font-weight: 700; white-space: nowrap; }
-.fields td:last-child { font-family: var(--mono); font-size: var(--fs-small); white-space: nowrap; padding-right: 0; }
+.fields td:last-child { font-family: var(--mono); font-size: 16px; white-space: nowrap; padding-right: 0; }
 .fields .no { color: var(--stop); font-weight: 700; }
+.fields .th-note { font-family: var(--body); }
 .arrow { color: var(--accent); padding: 0 6px; }
 
 /* ---------- Slide 8: first fit trace ---------------------------------- */
-.steps { display: grid; gap: 18px; counter-reset: s; align-content: start; }
+.steps { display: grid; gap: 16px; counter-reset: s; align-content: start; }
 .steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
 .steps li::before {
   content: counter(s); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
-  border: 2px solid var(--accent); color: var(--accent); font-family: var(--mono); font-weight: 700; font-size: var(--fs-label);
+  border: 2px solid var(--accent); color: var(--accent); font-family: var(--mono); font-weight: 700; font-size: 14px;
 }
 .steps span { display: block; color: var(--muted); font-size: var(--fs-small); }
 .trace td { font-size: var(--fs-small); }
 .trace td:nth-child(2) { font-family: var(--mono); font-weight: 700; }
 .pair { font-family: var(--mono); color: var(--accent); font-weight: 700; }
 .waiting { color: var(--wait); font-weight: 700; }
-.foot { border-left: 3px solid var(--line); padding-left: 14px; font-size: var(--fs-small); color: var(--muted); max-width: 76ch; }
+.foot { border-left: 3px solid var(--line); padding-left: 14px; font-size: var(--fs-small); color: var(--muted); max-width: 90ch; }
 
 /* ---------- Slide 9: three buttons ------------------------------------ */
 .modes { display: grid; gap: 20px; }
-.mode { display: grid; gap: 10px; align-content: start; }
+.mode { display: grid; gap: 8px; align-content: start; }
 .ttk {
-  justify-self: start; font-family: "Segoe UI", var(--body); font-size: var(--fs-small);
-  background: var(--raised); border: 1px solid var(--muted); border-radius: 3px; padding: 5px 14px;
+  justify-self: start; font-family: "Segoe UI", system-ui, sans-serif; font-size: 16px;
+  background: var(--raised); border: 1px solid var(--muted); border-radius: 3px; padding: 4px 14px;
 }
 .mode p { font-size: var(--fs-small); }
 .mode p + p { color: var(--muted); }
-.shared {
-  background: var(--accent-soft); border-radius: 8px; padding: 14px 18px; font-size: var(--fs-small);
-}
+.shared { background: var(--accent-soft); border-radius: 8px; padding: 12px 18px; font-size: var(--fs-small); }
 .shared code { font-weight: 700; color: var(--accent); }
 
 /* ---------- Slide 10: refusal slips ----------------------------------- */
@@ -267,7 +271,7 @@ pre.code .dim { color: var(--muted); }
 
 /* ---------- Slide 11: lifecycle --------------------------------------- */
 .flow { display: grid; gap: 10px; }
-.state { border-radius: 8px; padding: 12px 16px; display: grid; gap: 2px; border: 2px solid; align-content: center; }
+.state { border-radius: 8px; padding: 10px 16px; display: grid; gap: 0; border: 2px solid; align-content: center; }
 .state b { font-size: var(--fs-body); }
 .state span { font-size: var(--fs-small); color: var(--muted); }
 .s-wait { border-color: var(--wait); background: var(--wait-soft); }
@@ -276,22 +280,22 @@ pre.code .dim { color: var(--muted); }
 .s-del  { border-color: var(--stop); background: var(--raised); }
 .s-future { border: 2px dashed var(--line); background: transparent; }
 .s-future b { color: var(--muted); }
-.edge { display: grid; justify-items: center; align-content: center; gap: 2px; color: var(--accent); font-size: var(--fs-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.edge { display: grid; justify-items: center; align-content: center; gap: 0; color: var(--accent); font-size: var(--fs-label); font-weight: 700; text-align: center; }
 .edge i { font-style: normal; font-size: 26px; line-height: 1; transform: rotate(90deg); }
 .flow-sub { display: grid; gap: 10px; }
 
 /* ---------- Slide 12: capacity ---------------------------------------- */
-.cap { display: grid; gap: 16px; align-content: start; }
+.cap { display: grid; gap: 14px; align-content: start; }
 .cap-row { display: grid; gap: 10px; align-items: center; }
-.cap-label b { display: block; font-size: var(--fs-body); }
-.cap-label span { font-family: var(--mono); font-size: var(--fs-small); color: var(--muted); }
+.cap-label b { display: block; font-size: var(--fs-body); line-height: 1.3; }
+.cap-label span { font-family: var(--mono); font-size: 15px; color: var(--muted); }
 .tiles { display: flex; gap: 8px; flex-wrap: wrap; }
 .tile {
-  font-family: var(--mono); font-weight: 700; font-size: var(--fs-small); color: var(--ink);
+  font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--ink);
   border: 1.5px solid var(--line); background: var(--raised); border-radius: 6px;
-  padding: 7px 12px; min-width: 104px; display: grid;
+  padding: 6px 12px; min-width: 108px; display: grid; line-height: 1.35;
 }
-.tile small { font-family: var(--body); font-weight: 400; font-size: var(--fs-label); color: var(--muted); }
+.tile small { font-family: var(--body); font-weight: 400; font-size: 14px; color: var(--muted); }
 .t-res { border-color: var(--accent); background-color: var(--accent-soft); }
 .t-new { border-style: dashed; border-color: var(--accent); }
 .t-off { border-style: dashed; border-color: var(--off); background-color: var(--off-soft); color: var(--off); }
@@ -299,8 +303,8 @@ pre.code .dim { color: var(--muted); }
   border-color: var(--stop);
   background-image: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--stop) 26%, transparent) 7px 9px);
 }
-.cap-note { font-size: var(--fs-small); color: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--fs-label); color: var(--muted); }
+.cap-note { font-size: var(--fs-small); color: var(--muted); line-height: 1.45; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--fs-label); color: var(--muted); }
 .legend span { display: flex; align-items: center; gap: 6px; }
 .legend i { display: block; width: 18px; height: 13px; border-radius: 2px; border: 1.5px solid var(--line); background-color: var(--raised); }
 
@@ -315,29 +319,30 @@ pre.code .dim { color: var(--muted); }
 .csv li.bad mark { background: transparent; color: var(--stop); font-weight: 700; text-decoration: underline wavy; text-underline-offset: 4px; }
 .verdict { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; font-size: var(--fs-small); }
 .trio { display: grid; gap: 16px; align-content: start; }
-.trio li { border-top: 2px solid var(--ink); padding-top: 10px; display: grid; gap: 4px; align-content: start; }
+.trio li { border-top: 2px solid var(--ink); padding-top: 8px; display: grid; gap: 2px; align-content: start; }
 .trio span { font-size: var(--fs-small); color: var(--muted); }
 
 /* ---------- Slide 15: tests ------------------------------------------- */
-.files li { display: grid; gap: 1px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-.files code { font-weight: 700; font-size: var(--fs-small); }
-.files span { font-size: var(--fs-small); color: var(--muted); }
-.callouts { display: grid; gap: 12px; align-content: start; }
-.callouts li { background: var(--raised); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; font-size: var(--fs-small); }
+.files li { display: grid; grid-template-columns: 250px 1fr; gap: 12px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.files code { font-weight: 700; font-size: 15px; }
+.files span { font-size: var(--fs-small); color: var(--muted); line-height: 1.4; }
+.callouts { display: grid; gap: 10px; align-content: start; }
+.callouts li { background: var(--raised); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; font-size: var(--fs-small); line-height: 1.45; }
 .cmd { font-family: var(--mono); font-size: 14px; background: var(--ink); color: var(--paper); border-radius: 6px; padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
 
 /* ---------- Slide 16: demo -------------------------------------------- */
-.demo { display: grid; gap: 10px; counter-reset: d; align-content: start; }
-.demo li { counter-increment: d; display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: baseline; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
-.demo li::before { content: counter(d, decimal-leading-zero); font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: var(--fs-small); }
+.demo { display: grid; gap: 8px; counter-reset: d; align-content: start; }
+.demo li { counter-increment: d; display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: baseline; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+.demo li::before { content: counter(d, decimal-leading-zero); font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 16px; }
+.demo b { font-size: var(--fs-small); display: block; }
 .demo span { display: block; font-size: var(--fs-small); color: var(--muted); }
 .run { display: grid; gap: 14px; align-content: start; }
 
 /* ---------- Slide 17: limits ------------------------------------------ */
-.limits h3, .next h3 { margin: 0 0 8px; font-size: var(--fs-body); }
-.limits li, .next li { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
+.limits h3, .next h3 { margin: 0 0 6px; font-family: var(--display); font-size: var(--fs-body); }
+.limits li, .next li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-small); }
 .next li .m { display: inline-block; min-width: 2.6em; color: var(--accent); font-weight: 700; }
-.thanks { font-family: var(--display); font-weight: 800; font-size: var(--fs-h); line-height: 1; margin-top: 28px; }
+.thanks { font-family: var(--display); font-weight: 700; font-size: var(--fs-h); line-height: 1.2; margin-top: 26px; }
 
 /* ---------- Controls -------------------------------------------------- */
 .controls {
@@ -358,8 +363,9 @@ pre.code .dim { color: var(--muted); }
 
 /* ---------- Deck layouts (wide screens and print) --------------------- */
 @media print, screen and (min-width: 760px) and (min-height: 420px) {
-  .slide { padding: 46px 80px 54px; gap: 28px; }
+  .slide { padding: 40px 80px 48px; gap: 24px; }
   .body { flex: 1; min-height: 0; }
+  .scroll { overflow: visible; }
   .title-grid { grid-template-columns: 1.1fr 1fr; gap: 60px; }
   .method { grid-template-columns: repeat(5, 1fr); gap: 16px; }
   .days { grid-template-columns: 1fr 1.25fr; gap: 48px; align-content: start; }
@@ -373,14 +379,14 @@ pre.code .dim { color: var(--muted); }
   .ticket-wrap { grid-template-columns: 1.05fr 1fr; gap: 56px; }
   .trace-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 56px; align-items: start; }
   .modes { grid-template-columns: repeat(3, 1fr); gap: 32px; }
-  .slips { grid-template-columns: repeat(3, 1fr); gap: 18px 24px; }
+  .slips { grid-template-columns: repeat(3, 1fr); gap: 16px 24px; }
   .flow { grid-template-columns: 1fr 110px 1fr 110px 1fr; }
   .edge i { transform: none; }
   .flow-sub { grid-template-columns: 1.4fr 1fr 1fr; gap: 16px; }
   .cap-row { grid-template-columns: 150px auto 1fr; gap: 26px; }
   .split { grid-template-columns: 1.1fr 1fr; gap: 48px; }
   .trio { grid-template-columns: repeat(3, 1fr); gap: 32px; }
-  .tests-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; }
+  .tests-grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 40px; }
   .demo-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 48px; align-items: start; }
   .limits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
 }
@@ -416,350 +422,351 @@ pre.code .dim { color: var(--muted); }
 }
 </style>
 
-<main class="stage" id="stage" aria-roledescription="slide deck">
+<main class="stage" id="stage" lang="th" aria-roledescription="ชุดสไลด์">
 
   <!-- 1: Title -->
-  <section class="slide" aria-roledescription="slide" aria-label="Outpatient Front Desk">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="ผู้ช่วยจัดคิวผู้ป่วยนอก">
     <header class="slide-head">
-      <span class="kicker">Student final project · global health innovation</span>
+      <span class="kicker">โครงงานปลายภาค · นวัตกรรมสุขภาพโลก</span>
       <span class="num"></span>
     </header>
     <div class="title-grid body">
       <div>
-        <h1>Outpatient Front&nbsp;Desk</h1>
-        <p class="lead">A scheduling assistant that registers patients, issues queue tickets and reserves a compatible room and doctor, without ever giving either one to two patients at once.</p>
+        <p class="en" lang="en">Outpatient Front Desk</p>
+        <h1>ผู้ช่วยจัดคิว<br>ผู้ป่วยนอก</h1>
+        <p class="lead">ผู้ช่วยสำหรับเคาน์เตอร์ลงทะเบียน รับข้อมูลผู้ป่วย ออกบัตรคิว และจองห้องตรวจพร้อมแพทย์ที่ตรงแผนก โดยไม่ให้ห้องหรือแพทย์คนเดียวกันถูกจองให้ผู้ป่วยสองคนพร้อมกัน</p>
         <ul class="stack">
-          <li>Python and Tkinter</li>
-          <li>SQLite, on this computer only</li>
-          <li>No internet, no extra packages</li>
+          <li>Python และ Tkinter</li>
+          <li>SQLite เก็บไว้ในเครื่องนี้เท่านั้น</li>
+          <li>ไม่ต้องใช้อินเทอร์เน็ต ไม่ต้องติดตั้งแพ็กเกจเพิ่ม</li>
         </ul>
       </div>
       <figure>
-        <div class="board" aria-label="Queue ticket Q0147 assigned to room R01-1 and doctor D01-1 in General medicine">
-          <div class="board-top"><span>Ticket</span><span>General medicine</span></div>
+        <div class="board" aria-label="บัตรคิว Q0147 ได้ห้อง R01-1 และแพทย์ D01-1 แผนกอายุรกรรม">
+          <div class="board-top"><span>บัตรคิว</span><span>อายุรกรรม</span></div>
           <div class="board-num led">Q0147</div>
           <div class="board-row">
-            <div><small>Room</small><b class="led">R01-1</b></div>
-            <div><small>Doctor</small><b class="led">D01-1</b></div>
+            <div><small>ห้อง</small><b class="led">R01-1</b></div>
+            <div><small>แพทย์</small><b class="led">D01-1</b></div>
           </div>
         </div>
-        <figcaption class="board-cap">An example result of <b>Assign selected</b>. The app shows this in its queue table; there is no display board.</figcaption>
+        <figcaption class="board-cap">ตัวอย่างผลลัพธ์จากปุ่ม <b>Assign selected</b> ซึ่งแอปแสดงในตารางคิว ไม่มีจอแสดงคิวจริง</figcaption>
       </figure>
     </div>
   </section>
 
   <!-- 2: Proposal to first version -->
-  <section class="slide" aria-roledescription="slide" aria-label="From proposal to a first version">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="จากข้อเสนอโครงงานสู่เวอร์ชันแรก">
     <header class="slide-head">
       <div class="srcs"><span class="src">Proposal.md</span><span class="src">AGENTS.md</span></div>
       <span class="num"></span>
     </header>
-    <h2>From a big proposal to a first version that works</h2>
+    <h2>จากข้อเสนอโครงงาน สู่เวอร์ชันแรกที่ใช้ได้จริง</h2>
     <div class="body scroll">
       <table class="map">
-        <thead><tr><th style="width:36%">The proposal asked for</th><th>The first version</th><th style="width:12%"></th></tr></thead>
+        <thead><tr><th style="width:36%">ข้อเสนอโครงงานต้องการ</th><th>เวอร์ชันแรกทำอะไร</th><th style="width:13%"></th></tr></thead>
         <tbody>
-          <tr><td>Set priority automatically from how many cases there are, how critical they are and how long they take</td><td>Clinical staff decide urgency. The app never guesses severity from symptoms; for now the queue runs in arrival order.</td><td><span class="chip chip-next">Planned</span></td></tr>
-          <tr><td>Assign many cases to many doctors and rooms without conflicts</td><td>A room and a doctor are reserved together, and a second booking of either is refused with a reason.</td><td><span class="chip chip-built">Built</span></td></tr>
-          <tr><td>Know when a room is free from door buttons or ESP32 motion sensors</td><td>A staff-pressed button comes first. Motion only shows activity; it never marks a room free on its own.</td><td><span class="chip chip-next">Planned</span></td></tr>
-          <tr><td>Answer everyday questions with an AI model, without leaking patient information</td><td>Local answers first. Patient records, tickets and schedules are never sent to an outside service.</td><td><span class="chip chip-opt">Optional</span></td></tr>
+          <tr><td>จัดลำดับความสำคัญเองอัตโนมัติ จากจำนวนเคส ความรุนแรง และระยะเวลาที่ใช้</td><td>บุคลากรทางการแพทย์เป็นผู้กำหนดความเร่งด่วน แอปไม่เดาความรุนแรงจากอาการ ตอนนี้คิวเรียงตามลำดับการมาถึง</td><td><span class="chip chip-next">วางแผนไว้</span></td></tr>
+          <tr><td>จัดหลายเคสให้แพทย์และห้องหลายห้อง โดยไม่ชนกัน</td><td>จองห้องและแพทย์ไปพร้อมกัน ถ้ามีการจองซ้ำ ระบบจะปฏิเสธและบอกเหตุผล</td><td><span class="chip chip-built">สร้างแล้ว</span></td></tr>
+          <tr><td>รู้ว่าห้องว่างจากปุ่มที่ประตู หรือเซนเซอร์ตรวจจับการเคลื่อนไหวของ ESP32</td><td>เริ่มจากปุ่มที่เจ้าหน้าที่กดเองก่อน เซนเซอร์บอกได้แค่ว่ามีความเคลื่อนไหว จะไม่ตั้งห้องเป็น "ว่าง" เอง</td><td><span class="chip chip-next">วางแผนไว้</span></td></tr>
+          <tr><td>ตอบคำถามทั่วไปด้วยโมเดล AI โดยไม่ให้ข้อมูลผู้ป่วยรั่วไหล</td><td>เริ่มจากคำตอบที่เก็บไว้ในเครื่อง ข้อมูลผู้ป่วย บัตรคิว และตารางนัด จะไม่ถูกส่งไปยังบริการภายนอก</td><td><span class="chip chip-opt">ทางเลือกเสริม</span></td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <!-- 3: How it was built -->
-  <section class="slide" aria-roledescription="slide" aria-label="Built one lesson at a time">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="สร้างทีละบทเรียน">
     <header class="slide-head">
       <div class="srcs"><span class="src">LEARNING.md</span><span class="src">lessons/</span></div>
       <span class="num"></span>
     </header>
-    <h2>Built one small lesson at a time</h2>
+    <h2>สร้างทีละบทเรียนเล็ก ๆ</h2>
     <ol class="method">
-      <li><b>Understand</b><span>Name the problem and the ideas it needs</span></li>
-      <li><b>Build</b><span>One piece that runs</span></li>
-      <li><b>Trace</b><span>Follow one input to its result</span></li>
-      <li><b>Check</b><span>Run it against a stated expectation</span></li>
-      <li><b>Try</b><span>Change it, or rebuild it alone</span></li>
+      <li><b>ทำความเข้าใจ</b><span>ระบุปัญหาและแนวคิดที่ต้องใช้</span></li>
+      <li><b>สร้าง</b><span>ทำหนึ่งส่วนที่รันได้จริง</span></li>
+      <li><b>ไล่ตาม</b><span>ติดตามข้อมูลหนึ่งชุดจนได้ผลลัพธ์</span></li>
+      <li><b>ตรวจสอบ</b><span>รันแล้วเทียบกับสิ่งที่คาดไว้</span></li>
+      <li><b>ลองเอง</b><span>แก้ไข หรือสร้างใหม่ด้วยตัวเอง</span></li>
     </ol>
     <div class="days body">
       <div class="day">
-        <h3>6 September 2026</h3>
+        <h3>6 กันยายน 2569</h3>
         <ul>
-          <li><span class="m">L1</span>A window, a text box and a button callback</li>
-          <li><span class="m">L2</span>Patient registration and ward queue tickets</li>
-          <li><span class="m">L3</span>Reserve a room and a doctor for today</li>
+          <li><span class="m">L1</span>หน้าต่าง ช่องกรอกข้อความ และ callback ของปุ่ม</li>
+          <li><span class="m">L2</span>ลงทะเบียนผู้ป่วยและบัตรคิวตามแผนก</li>
+          <li><span class="m">L3</span>จองห้องและแพทย์สำหรับวันนี้</li>
         </ul>
       </div>
       <div class="day">
-        <h3>8 September 2026</h3>
+        <h3>8 กันยายน 2569</h3>
         <ul>
-          <li><span class="m">L6</span>Save the queue in SQLite, built early on request</li>
-          <li><span class="m">L6+</span>CSV import, delete, and a details window</li>
-          <li><span class="m">L6+</span>Rooms and doctors per ward, out of service</li>
-          <li><span class="m">L6+</span>Manual and automatic assignment</li>
-          <li><span class="m">L5</span>Mark done gives the room back, built early</li>
+          <li><span class="m">L6</span>บันทึกคิวลง SQLite (ทำก่อนกำหนดตามที่ขอ)</li>
+          <li><span class="m">L6+</span>นำเข้า CSV ลบข้อมูล และหน้าต่างรายละเอียด</li>
+          <li><span class="m">L6+</span>จำนวนห้องและแพทย์ต่อแผนก และการปิดปรับปรุง</li>
+          <li><span class="m">L6+</span>จัดสรรแบบเลือกเองและแบบอัตโนมัติ</li>
+          <li><span class="m">L5</span>Mark done เพื่อคืนห้อง (ทำก่อนกำหนด)</li>
         </ul>
       </div>
     </div>
   </section>
 
   <!-- 4: Status -->
-  <section class="slide" aria-roledescription="slide" aria-label="What works today">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="สิ่งที่ใช้ได้แล้ว">
     <header class="slide-head">
       <div class="srcs"><span class="src">README.md</span><span class="src">AGENTS.md</span></div>
       <span class="num"></span>
     </header>
-    <h2>What works today, and what doesn't yet</h2>
+    <h2>ตอนนี้อะไรใช้ได้แล้ว และอะไรยังไม่ได้</h2>
     <div class="status body">
       <div>
-        <h3><span class="chip chip-built">Built</span></h3>
+        <h3><span class="chip chip-built">สร้างแล้ว</span></h3>
         <ul>
-          <li>Registration with checks on every field</li>
-          <li>Ward-based queue tickets, <code>QWWRR</code></li>
-          <li>Room and doctor reserved together</li>
-          <li>First-fit, manual and automatic assignment</li>
-          <li>Capacity per ward, out-of-service rooms</li>
-          <li>Queue saved between runs</li>
-          <li>CSV import, delete, details window</li>
-          <li>Mark done, which frees the room</li>
+          <li>ลงทะเบียน พร้อมตรวจทุกช่อง</li>
+          <li>บัตรคิวตามแผนก รูปแบบ <code>QWWRR</code></li>
+          <li>จองห้องและแพทย์ไปพร้อมกัน</li>
+          <li>จัดสรรแบบ first fit เลือกเอง และอัตโนมัติ</li>
+          <li>จำนวนห้องต่อแผนก และห้องปิดปรับปรุง</li>
+          <li>คิวยังอยู่แม้ปิดโปรแกรม</li>
+          <li>นำเข้า CSV ลบข้อมูล และดูรายละเอียด</li>
+          <li>Mark done เพื่อคืนห้อง</li>
         </ul>
       </div>
       <div>
-        <h3><span class="chip chip-next">On the roadmap</span></h3>
+        <h3><span class="chip chip-next">อยู่ในแผน</span></h3>
         <ul>
-          <li>Time slots and staff-set urgency <span class="m">L4</span></li>
-          <li>In progress, cancel, overrun <span class="m">L5</span></li>
-          <li>Simulated room events <span class="m">L7</span></li>
-          <li>One ESP32 button <span class="m">L7</span></li>
-          <li>Baseline visit-length estimate <span class="m">L8</span></li>
-          <li>Local FAQ answers <span class="m">L9, optional</span></li>
+          <li>ช่วงเวลานัดและความเร่งด่วน <span class="m">L4</span></li>
+          <li>กำลังตรวจ ยกเลิก เกินเวลา <span class="m">L5</span></li>
+          <li>จำลองสัญญาณจากห้อง <span class="m">L7</span></li>
+          <li>ปุ่ม ESP32 หนึ่งปุ่ม <span class="m">L7</span></li>
+          <li>ค่าประมาณเวลาตรวจแบบพื้นฐาน <span class="m">L8</span></li>
+          <li>ตอบคำถามทั่วไปในเครื่อง <span class="m">L9</span></li>
         </ul>
       </div>
       <div>
-        <h3><span class="chip chip-opt">Removed</span></h3>
+        <h3><span class="chip chip-opt">ตัดออกแล้ว</span></h3>
         <div class="removed">
-          <b>Machine-learning ranking</b>
-          <p>A decision tree ranked room and doctor pairs by predicted visit length. It was trained on simulated history and removed on 8 September.</p>
-          <p>The app now runs on the Python standard library alone.</p>
+          <b>การจัดอันดับด้วย Machine learning</b>
+          <p>ใช้ decision tree จัดอันดับคู่ห้องกับแพทย์ตามเวลาตรวจที่ทำนาย ฝึกด้วยข้อมูลย้อนหลังที่จำลองขึ้น และถูกตัดออกเมื่อ 8 ก.ย.</p>
+          <p>ตอนนี้แอปใช้แค่ไลบรารีมาตรฐานของ Python</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- 5: Architecture -->
-  <section class="slide" aria-roledescription="slide" aria-label="Rules live apart from the window">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="กฎแยกจากหน้าต่างโปรแกรม">
     <header class="slide-head">
       <div class="srcs"><span class="src">app.py</span><span class="src">registration.py</span><span class="src">assignment.py</span><span class="src">storage.py</span><span class="src">bulk_import.py</span></div>
       <span class="num"></span>
     </header>
-    <h2>The rules live apart from the window</h2>
+    <h2>กฎการทำงานแยกออกจากหน้าต่างโปรแกรม</h2>
     <div class="arch body">
       <div class="arch-app">
         <code>app.py</code>
-        <span class="small">926 lines: the form, the queue table, the rooms tab and the dialogs</span>
-        <em>the only file that imports Tkinter</em>
+        <span class="small">926 บรรทัด: ฟอร์ม ตารางคิว แท็บห้อง และหน้าต่างย่อยต่าง ๆ</span>
+        <em>ไฟล์เดียวที่ใช้ Tkinter</em>
       </div>
       <div class="mods">
-        <div class="mod"><code>registration.py</code><span>Check a patient's details and issue a ticket</span><small>136 lines</small></div>
-        <div class="mod"><code>assignment.py</code><span>Reserve, release and capacity rules</span><small>257 lines</small></div>
-        <div class="mod"><code>storage.py</code><span>Save and load the queue</span><small>310 lines</small><span class="db">→ clinic.db</span></div>
-        <div class="mod"><code>bulk_import.py</code><span>Read a CSV and check every row</span><small>110 lines</small></div>
+        <div class="mod"><code>registration.py</code><span>ตรวจข้อมูลผู้ป่วยและออกบัตรคิว</span><small>136 บรรทัด</small></div>
+        <div class="mod"><code>assignment.py</code><span>กฎการจอง การคืน และจำนวนห้อง</span><small>257 บรรทัด</small></div>
+        <div class="mod"><code>storage.py</code><span>บันทึกและโหลดคิว</span><small>310 บรรทัด</small><span class="db">→ clinic.db</span></div>
+        <div class="mod"><code>bulk_import.py</code><span>อ่านไฟล์ CSV และตรวจทุกแถว</span><small>110 บรรทัด</small></div>
       </div>
-      <p class="tests-band"><b>7 test files, 110 checks</b> call these four modules directly. Every scheduling rule can be tested without opening a window or clicking a button.</p>
+      <p class="tests-band"><b>ไฟล์ทดสอบ 7 ไฟล์ รวม 110 การทดสอบ</b> เรียกใช้ 4 โมดูลนี้โดยตรง กฎการจัดคิวทุกข้อจึงทดสอบได้โดยไม่ต้องเปิดหน้าต่างหรือกดปุ่ม</p>
     </div>
   </section>
 
   <!-- 6: Ticket anatomy -->
-  <section class="slide" aria-roledescription="slide" aria-label="Anatomy of a queue ticket">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="โครงสร้างของบัตรคิว">
     <header class="slide-head">
       <div class="srcs"><span class="src">registration.py</span><span class="src">generate_queue_id()</span></div>
       <span class="num"></span>
     </header>
-    <h2>Anatomy of a queue ticket</h2>
+    <h2>โครงสร้างของบัตรคิว</h2>
     <div class="ticket-wrap body">
       <div>
         <div class="ticket">
-          <div class="ticket-code" aria-label="Q, ward 01, random 47">
-            <div class="seg seg-q"><div class="glyph">Q</div><span><b>Queue</b>always Q</span></div>
-            <div class="seg seg-w"><div class="glyph">01</div><span><b>Ward code</b>General medicine</span></div>
-            <div class="seg seg-r"><div class="glyph">47</div><span><b>Random</b>one of 00–99</span></div>
+          <div class="ticket-code" aria-label="Q แผนก 01 เลขสุ่ม 47">
+            <div class="seg seg-q"><div class="glyph">Q</div><span><b>คิว</b>ขึ้นต้นด้วย Q เสมอ</span></div>
+            <div class="seg seg-w"><div class="glyph">01</div><span><b>รหัสแผนก</b>อายุรกรรม</span></div>
+            <div class="seg seg-r"><div class="glyph">47</div><span><b>เลขสุ่ม</b>00–99</span></div>
           </div>
-          <p class="ticket-foot">Rooms and doctors have their own IDs: R01-2 is room 2 of ward 01, and D01-1 is its first doctor.</p>
+          <p class="ticket-foot">ห้องและแพทย์มีรหัสของตัวเอง: R01-2 คือห้องที่ 2 ของแผนก 01 และ D01-1 คือแพทย์คนแรกของแผนกนั้น</p>
         </div>
         <table class="wards">
           <tbody>
-            <tr><td class="code">01</td><td>General medicine</td><td class="code">02</td><td>Pediatrics</td></tr>
-            <tr><td class="code">03</td><td>Orthopedics</td><td class="code">04</td><td>Ophthalmology</td></tr>
+            <tr><td class="code">01</td><td>อายุรกรรม<small lang="en">General medicine</small></td><td class="code">02</td><td>กุมารเวชกรรม<small lang="en">Pediatrics</small></td></tr>
+            <tr><td class="code">03</td><td>ออร์โธปิดิกส์<small lang="en">Orthopedics</small></td><td class="code">04</td><td>จักษุวิทยา<small lang="en">Ophthalmology</small></td></tr>
           </tbody>
         </table>
       </div>
       <ul class="points">
-        <li><b>100 tickets per ward, per appointment date.</b><span>The app picks only from numbers not yet used, so a full ward is refused at once instead of retrying forever.</span></li>
-        <li><b>Every date gets a fresh pool.</b><span>Q0147 on 8 September and Q0147 on 9 September are two different patients. The date plus the ticket identifies a registration.</span></li>
-        <li><b>The number means nothing.</b><span>The random part is not priority and not arrival order. Staff choose the case; the ticket only names it.</span></li>
+        <li><b>แต่ละแผนกมี 100 บัตร ต่อวันนัดหนึ่งวัน</b><span>แอปสุ่มจากเลขที่ยังไม่ถูกใช้เท่านั้น เมื่อแผนกเต็มจึงปฏิเสธทันที ไม่ต้องสุ่มซ้ำไปเรื่อย ๆ</span></li>
+        <li><b>ทุกวันเริ่มชุดเลขใหม่</b><span>Q0147 วันที่ 8 ก.ย. กับ Q0147 วันที่ 9 ก.ย. เป็นผู้ป่วยคนละคน ต้องใช้วันที่คู่กับเลขบัตรจึงจะระบุการลงทะเบียนได้</span></li>
+        <li><b>เลขไม่มีความหมายแฝง</b><span>ส่วนที่สุ่มไม่ได้บอกความสำคัญหรือลำดับการมาถึง เจ้าหน้าที่เป็นผู้เลือกเคส บัตรคิวมีไว้เรียกเท่านั้น</span></li>
       </ul>
     </div>
   </section>
 
   <!-- 7: Field checks -->
-  <section class="slide" aria-roledescription="slide" aria-label="Every field is checked">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="ตรวจทุกช่องก่อนออกบัตรคิว">
     <header class="slide-head">
       <div class="srcs"><span class="src">registration.py</span><span class="src">create_patient_record()</span></div>
       <span class="num"></span>
     </header>
-    <h2>Every field is checked before a ticket exists</h2>
+    <h2>ตรวจทุกช่อง ก่อนจะออกบัตรคิว</h2>
     <div class="body scroll">
       <table class="fields">
-        <thead><tr><th>Field</th><th>Rule</th><th>Example</th></tr></thead>
+        <thead><tr><th>ช่อง</th><th>กฎ</th><th>ตัวอย่าง</th></tr></thead>
         <tbody>
-          <tr><td>Patient name</td><td>Required, 1 to 100 characters</td><td>Somchai Fictional</td></tr>
-          <tr><td>Medical information</td><td>Optional, up to 2,000 characters. Blank stays blank; it never means "no conditions".</td><td>Routine follow-up.</td></tr>
-          <tr><td>Appointment date</td><td>YYYY-MM-DD, and a date that exists on the calendar</td><td><span class="no">2026-02-30</span> refused</td></tr>
-          <tr><td>Phone number</td><td>7 to 15 digits. Separators are removed and it is kept as text, so the leading zero survives.</td><td>(02) 123-4567<span class="arrow">→</span>021234567</td></tr>
-          <tr><td>Destination ward</td><td>One of the four configured wards; it decides the ticket's ward code</td><td>Orthopedics<span class="arrow">→</span>Q03··</td></tr>
+          <tr><td>ชื่อผู้ป่วย</td><td>จำเป็น ยาว 1–100 ตัวอักษร</td><td>Somchai Fictional</td></tr>
+          <tr><td>ข้อมูลทางการแพทย์</td><td>ไม่บังคับ ไม่เกิน 2,000 ตัวอักษร ถ้าเว้นว่างก็เก็บเป็นค่าว่าง ไม่ถือว่า "ไม่มีโรค"</td><td>Routine follow-up.</td></tr>
+          <tr><td>วันนัด</td><td>รูปแบบ YYYY-MM-DD และต้องเป็นวันที่มีอยู่จริงในปฏิทิน</td><td><span class="no">2026-02-30</span> <span class="th-note">ปฏิเสธ</span></td></tr>
+          <tr><td>เบอร์โทรศัพท์</td><td>7–15 หลัก ตัดเครื่องหมายคั่นออก เก็บเป็นข้อความเพื่อให้เลข 0 นำหน้าอยู่ครบ</td><td>(02) 123-4567<span class="arrow">→</span>021234567</td></tr>
+          <tr><td>แผนกปลายทาง</td><td>หนึ่งในสี่แผนกที่ตั้งไว้ และเป็นตัวกำหนดรหัสแผนกบนบัตร</td><td>Orthopedics<span class="arrow">→</span>Q03··</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="foot">A refused form adds nothing to the queue and keeps what was typed, so staff correct one field instead of starting again.</p>
+    <p class="foot">ถ้าฟอร์มไม่ผ่าน จะไม่มีอะไรถูกเพิ่มในคิว และข้อมูลที่พิมพ์ไว้ยังอยู่ เจ้าหน้าที่แก้เฉพาะช่องที่ผิดได้ ไม่ต้องกรอกใหม่ทั้งหมด</p>
   </section>
 
   <!-- 8: First fit -->
-  <section class="slide" aria-roledescription="slide" aria-label="First fit">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="First fit">
     <header class="slide-head">
       <div class="srcs"><span class="src">assignment.py</span><span class="src">assign_patient()</span></div>
       <span class="num"></span>
     </header>
-    <h2>First fit: the first free room and the first free doctor</h2>
+    <h2>First fit: ห้องว่างห้องแรก กับแพทย์ว่างคนแรก</h2>
     <div class="trace-grid body">
       <ol class="steps">
-        <li><div><b>Check the case</b><span>Dated today, not already holding a pair, not marked done.</span></div></li>
-        <li><div><b>List what is free</b><span>Rooms in that ward that are in service and unreserved; doctors who serve that ward and are unreserved.</span></div></li>
-        <li><div><b>Reserve both, or neither</b><span>Nothing changes until a room and a doctor both exist. Reserving the room first could leave it stuck with no doctor.</span></div></li>
+        <li><div><b>ตรวจเคส</b><span>เป็นนัดของวันนี้ ยังไม่มีห้องและแพทย์ และยังไม่ถูกทำเครื่องหมายว่าเสร็จ</span></div></li>
+        <li><div><b>หาสิ่งที่ว่าง</b><span>ห้องในแผนกนั้นที่เปิดใช้งานและยังไม่ถูกจอง กับแพทย์ประจำแผนกนั้นที่ยังไม่ถูกจอง</span></div></li>
+        <li><div><b>จองทั้งคู่ หรือไม่จองเลย</b><span>จะเปลี่ยนข้อมูลก็ต่อเมื่อมีทั้งห้องและแพทย์ ถ้าจองห้องไปก่อน ห้องอาจค้างอยู่โดยไม่มีแพทย์</span></div></li>
       </ol>
       <div>
-        <p class="label" style="margin-bottom:10px">Three General medicine cases today · 2 rooms · 2 doctors</p>
+        <p class="label" style="margin-bottom:8px">อายุรกรรม 3 เคสวันนี้ · 2 ห้อง · แพทย์ 2 คน</p>
         <table class="trace">
-          <thead><tr><th>Pressed</th><th>Ticket</th><th>Result</th></tr></thead>
+          <thead><tr><th>กดครั้งที่</th><th>บัตรคิว</th><th>ผลลัพธ์</th></tr></thead>
           <tbody>
-            <tr><td>1st</td><td>Q0147</td><td><span class="pair">R01-1 · D01-1</span></td></tr>
-            <tr><td>2nd</td><td>Q0102</td><td><span class="pair">R01-2 · D01-2</span></td></tr>
-            <tr><td>3rd</td><td>Q0183</td><td><span class="waiting">Waiting</span><p class="msg" style="margin-top:8px">No available room in General medicine. The case stays waiting.</p></td></tr>
+            <tr><td>1</td><td>Q0147</td><td><span class="pair">R01-1 · D01-1</span></td></tr>
+            <tr><td>2</td><td>Q0102</td><td><span class="pair">R01-2 · D01-2</span></td></tr>
+            <tr><td>3</td><td>Q0183</td><td><span class="waiting">รอคิว</span><p class="msg" lang="en" style="margin-top:6px">No available room in General medicine. The case stays waiting.</p><p class="gloss" style="margin-top:4px">ไม่มีห้องว่างในแผนกอายุรกรรม เคสนี้ยังคงรอคิว</p></td></tr>
           </tbody>
         </table>
       </div>
     </div>
-    <p class="foot">Predictable, not optimal: the same queue always gives the same result. Choosing a "best" pair would need a stated goal, which the project has not defined.</p>
+    <p class="foot">คาดเดาได้ แต่ไม่ได้ดีที่สุด: คิวเดิมให้ผลเดิมทุกครั้ง การเลือกคู่ที่ "ดีที่สุด" ต้องมีเป้าหมายที่ชัดเจน ซึ่งโครงงานยังไม่ได้กำหนด</p>
   </section>
 
   <!-- 9: Three modes -->
-  <section class="slide" aria-roledescription="slide" aria-label="Three ways to assign, one set of rules">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="สามวิธีจัดสรร กฎชุดเดียว">
     <header class="slide-head">
       <div class="srcs"><span class="src">assignment.py</span><span class="src">app.py</span></div>
       <span class="num"></span>
     </header>
-    <h2>Three ways to assign, one set of rules</h2>
+    <h2>สามวิธีจัดสรร ใช้กฎชุดเดียวกัน</h2>
     <div class="modes body">
       <div class="mode">
-        <span class="ttk">Assign selected</span>
-        <p>Takes the first compatible free room and doctor, in the order they are configured.</p>
-        <p>Fast and predictable for the usual case.</p>
+        <span class="ttk" lang="en">Assign selected</span>
+        <p>เลือกห้องและแพทย์ว่างตัวแรกที่เข้ากันได้ ตามลำดับที่ตั้งค่าไว้</p>
+        <p>เร็วและคาดเดาได้ สำหรับกรณีทั่วไป</p>
       </div>
       <div class="mode">
-        <span class="ttk">Choose room/doctor...</span>
-        <p>Opens a chooser listing only the rooms and doctors actually free for that ward.</p>
-        <p>Staff may know which room has the right equipment. They can change which pair is used, never whether it is allowed.</p>
+        <span class="ttk" lang="en">Choose room/doctor...</span>
+        <p>เปิดหน้าต่างให้เลือก โดยแสดงเฉพาะห้องและแพทย์ที่ว่างจริงในแผนกนั้น</p>
+        <p>เจ้าหน้าที่อาจรู้ว่าห้องไหนมีอุปกรณ์ที่เหมาะ จึงเปลี่ยนได้ว่าจะใช้คู่ไหน แต่เปลี่ยนไม่ได้ว่าคู่นั้นผิดกฎหรือไม่</p>
       </div>
       <div class="mode">
-        <span class="ttk">Auto-assign all</span>
-        <p>Serves every waiting case dated today, first come, first served.</p>
-        <p>A blocked case waits with its reason and the run continues, so one full ward never holds up another. Pairs already given are never reshuffled.</p>
+        <span class="ttk" lang="en">Auto-assign all</span>
+        <p>จัดทุกเคสที่รอคิวของวันนี้ แบบมาก่อนได้ก่อน</p>
+        <p>เคสที่จัดไม่ได้จะรอพร้อมเหตุผล แล้วระบบทำต่อ แผนกที่เต็มจึงไม่ขวางแผนกอื่น และจะไม่สลับคู่ที่จัดไปแล้ว</p>
       </div>
     </div>
-    <p class="shared">All three call <code>check_case_is_assignable()</code> and <code>available_resources()</code>, so they can never disagree about who is eligible or what is free.</p>
+    <p class="shared">ทั้งสามวิธีเรียก <code>check_case_is_assignable()</code> และ <code>available_resources()</code> จึงไม่มีทางเห็นไม่ตรงกันว่าเคสไหนมีสิทธิ์ หรืออะไรว่างอยู่</p>
   </section>
 
   <!-- 10: Refusals -->
-  <section class="slide" aria-roledescription="slide" aria-label="When the answer is no">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="เมื่อจัดไม่ได้ แอปบอกเหตุผล">
     <header class="slide-head">
       <div class="srcs"><span class="src">assignment.py</span><span class="src">_explain_choice()</span></div>
       <span class="num"></span>
     </header>
-    <h2>When the answer is no, the app says why</h2>
-    <p class="lead">A case with no valid assignment stays waiting, and the message tells staff exactly what to fix. These are the app's own messages.</p>
+    <h2>เมื่อจัดไม่ได้ แอปจะบอกเหตุผล</h2>
+    <p class="lead">เคสที่จัดไม่ได้จะยังรอคิว พร้อมข้อความบอกว่าต้องแก้อะไร ด้านล่างคือข้อความจริงจากแอป พร้อมคำแปล</p>
     <div class="slips body">
-      <div class="slip"><span class="label">Already taken</span><p class="msg">R01-2 is already reserved by Q0147.</p></div>
-      <div class="slip"><span class="label">Wrong ward</span><p class="msg">D02-1 does not serve General medicine.</p></div>
-      <div class="slip"><span class="label">Maintenance</span><p class="msg">R01-3 is out of service.</p></div>
-      <div class="slip"><span class="label">Not today</span><p class="msg">Only appointments dated today can receive an immediate assignment.</p></div>
-      <div class="slip"><span class="label">Visit finished</span><p class="msg">Q0183 is already marked done.</p></div>
-      <div class="slip"><span class="label">Shrinking a ward</span><p class="msg">Cannot reduce General medicine: R01-2 is reserved. Delete or reassign those cases first.</p></div>
+      <div class="slip"><span class="label">ถูกจองแล้ว</span><p class="msg" lang="en">R01-2 is already reserved by Q0147.</p><p class="gloss">R01-2 ถูกจองโดย Q0147 แล้ว</p></div>
+      <div class="slip"><span class="label">ผิดแผนก</span><p class="msg" lang="en">D02-1 does not serve General medicine.</p><p class="gloss">D02-1 ไม่ได้ประจำแผนกอายุรกรรม</p></div>
+      <div class="slip"><span class="label">ปิดปรับปรุง</span><p class="msg" lang="en">R01-3 is out of service.</p><p class="gloss">R01-3 งดให้บริการ</p></div>
+      <div class="slip"><span class="label">ไม่ใช่นัดวันนี้</span><p class="msg" lang="en">Only appointments dated today can receive an immediate assignment.</p><p class="gloss">จัดสรรทันทีได้เฉพาะนัดของวันนี้</p></div>
+      <div class="slip"><span class="label">ตรวจเสร็จแล้ว</span><p class="msg" lang="en">Q0183 is already marked done.</p><p class="gloss">Q0183 ถูกทำเครื่องหมายว่าเสร็จแล้ว</p></div>
+      <div class="slip"><span class="label">ลดจำนวนห้อง</span><p class="msg" lang="en">Cannot reduce General medicine: R01-2 is reserved. Delete or reassign those cases first.</p><p class="gloss">ลดไม่ได้ เพราะ R01-2 ถูกจองอยู่ ให้ลบหรือย้ายเคสนั้นก่อน</p></div>
     </div>
   </section>
 
   <!-- 11: Lifecycle -->
-  <section class="slide" aria-roledescription="slide" aria-label="A case's life">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="เส้นทางของหนึ่งเคส">
     <header class="slide-head">
       <div class="srcs"><span class="src">assignment.py</span><span class="src">release_reservation()</span><span class="src">storage.py</span></div>
       <span class="num"></span>
     </header>
-    <h2>A case's life, from ticket to done</h2>
+    <h2>เส้นทางของหนึ่งเคส ตั้งแต่ออกบัตรจนเสร็จ</h2>
     <div class="flow">
-      <div class="state s-wait"><b>Waiting</b><span>Registered and in the queue</span></div>
-      <div class="edge"><span>Assign</span><i aria-hidden="true">→</i></div>
-      <div class="state s-held"><b>Assigned</b><span>Holds one room and one doctor</span></div>
-      <div class="edge"><span>Mark done</span><i aria-hidden="true">→</i></div>
-      <div class="state s-done"><b>Done</b><span>Pair released, record archived</span></div>
+      <div class="state s-wait"><b>รอคิว</b><span>ลงทะเบียนแล้ว อยู่ในคิว</span></div>
+      <div class="edge"><span>จัดสรร</span><i aria-hidden="true">→</i></div>
+      <div class="state s-held"><b>ได้ห้องแล้ว</b><span>ถือห้องหนึ่งห้องและแพทย์หนึ่งคน</span></div>
+      <div class="edge"><span lang="en">Mark done</span><i aria-hidden="true">→</i></div>
+      <div class="state s-done"><b>เสร็จสิ้น</b><span>คืนห้องและแพทย์ เก็บประวัติไว้</span></div>
     </div>
     <div class="flow-sub">
-      <div class="state s-del"><b>Deleted</b><span>Removes the record for good and frees anything it held</span></div>
-      <div class="state s-future"><b>In progress</b><span>Not built yet · lesson 5</span></div>
-      <div class="state s-future"><b>Cancelled</b><span>Not built yet · lesson 5</span></div>
+      <div class="state s-del"><b>ลบ</b><span>ลบข้อมูลถาวร และคืนทุกอย่างที่ถืออยู่</span></div>
+      <div class="state s-future"><b>กำลังตรวจ</b><span>ยังไม่ได้สร้าง · บทที่ 5</span></div>
+      <div class="state s-future"><b>ยกเลิก</b><span>ยังไม่ได้สร้าง · บทที่ 5</span></div>
     </div>
     <ul class="points body">
-      <li><b>Mark done names the room and doctor it will free, then frees them at once.</b><span>The next Auto-assign can hand them straight to a waiting case.</span></li>
-      <li><b>Done cases are archived, not erased.</b><span>They leave the working queue, keep their finish time, and come back with Show completed cases.</span></li>
-      <li><b>There is no reopen.</b><span>By the time a mistake is noticed, the freed room may belong to someone else.</span></li>
+      <li><b>Mark done บอกชื่อห้องและแพทย์ที่จะคืนก่อน แล้วคืนทันที</b><span>กด Auto-assign ครั้งถัดไป ก็ส่งต่อให้เคสที่รออยู่ได้เลย</span></li>
+      <li><b>เคสที่เสร็จถูกเก็บถาวร ไม่ได้ถูกลบ</b><span>หายไปจากคิวที่ใช้งาน แต่เก็บเวลาที่เสร็จไว้ และดูได้อีกครั้งด้วย Show completed cases</span></li>
+      <li><b>ไม่มีการเปิดเคสกลับ</b><span>กว่าจะรู้ว่าผิด ห้องที่คืนไปอาจเป็นของผู้ป่วยคนอื่นแล้ว</span></li>
     </ul>
   </section>
 
   <!-- 12: Capacity -->
-  <section class="slide" aria-roledescription="slide" aria-label="Change capacity without losing a patient">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="เปลี่ยนจำนวนห้องอย่างปลอดภัย">
     <header class="slide-head">
       <div class="srcs"><span class="src">assignment.py</span><span class="src">blocking_reservations()</span></div>
       <span class="num"></span>
     </header>
-    <h2>Change capacity without losing a patient</h2>
-    <p class="lead">Each ward can have 0 to 12 rooms and 0 to 12 doctors, saved between runs. IDs come from position, so rooms are only added or removed at the end.</p>
+    <h2>เปลี่ยนจำนวนห้อง โดยไม่ทำให้ผู้ป่วยตกหล่น</h2>
+    <p class="lead">แต่ละแผนกมีได้ 0–12 ห้อง และแพทย์ 0–12 คน บันทึกไว้แม้ปิดโปรแกรม รหัสมาจากลำดับตำแหน่ง จึงเพิ่มหรือลดได้เฉพาะท้ายรายการ</p>
     <div class="cap body">
       <div class="cap-row">
-        <div class="cap-label"><b>Grow</b><span>2 → 3 rooms</span></div>
-        <div class="tiles"><span class="tile t-res">R01-1<small>reserved</small></span><span class="tile">R01-2<small>free</small></span><span class="tile t-new">R01-3<small>added</small></span></div>
-        <p class="cap-note">Existing rooms keep their IDs, so every reservation still points at a real room.</p>
+        <div class="cap-label"><b>เพิ่ม</b><span>2 → 3 ห้อง</span></div>
+        <div class="tiles"><span class="tile t-res">R01-1<small>จองแล้ว</small></span><span class="tile">R01-2<small>ว่าง</small></span><span class="tile t-new">R01-3<small>เพิ่มใหม่</small></span></div>
+        <p class="cap-note">ห้องเดิมใช้รหัสเดิม การจองที่มีอยู่จึงยังชี้ไปที่ห้องจริง</p>
       </div>
       <div class="cap-row">
-        <div class="cap-label"><b>Shrink</b><span>3 → 1 room</span></div>
-        <div class="tiles"><span class="tile t-res">R01-1<small>reserved</small></span><span class="tile t-res t-cut">R01-2<small>reserved</small></span><span class="tile t-cut">R01-3<small>free</small></span></div>
-        <p class="msg msg-stop">Cannot reduce General medicine: R01-2 is reserved.</p>
+        <div class="cap-label"><b>ลด</b><span>3 → 1 ห้อง</span></div>
+        <div class="tiles"><span class="tile t-res">R01-1<small>จองแล้ว</small></span><span class="tile t-res t-cut">R01-2<small>จองแล้ว</small></span><span class="tile t-cut">R01-3<small>ว่าง</small></span></div>
+        <div><p class="msg msg-stop" lang="en">Cannot reduce General medicine: R01-2 is reserved.</p><p class="gloss" style="margin-top:4px">ระบบปฏิเสธ เพราะ R01-2 ยังถูกจองอยู่</p></div>
       </div>
       <div class="cap-row">
-        <div class="cap-label"><b>Maintenance</b><span>out of service</span></div>
-        <div class="tiles"><span class="tile t-res">R01-1<small>reserved</small></span><span class="tile">R01-2<small>free</small></span><span class="tile t-off">R01-3<small>unavailable</small></span></div>
-        <p class="cap-note">Kept in its own table, so R01-3 keeps its ID instead of being reused. A reserved room can't be taken out.</p>
+        <div class="cap-label"><b>ปิดปรับปรุง</b><span>out of service</span></div>
+        <div class="tiles"><span class="tile t-res">R01-1<small>จองแล้ว</small></span><span class="tile">R01-2<small>ว่าง</small></span><span class="tile t-off">R01-3<small>ไม่พร้อมใช้</small></span></div>
+        <p class="cap-note">เก็บแยกไว้อีกตาราง R01-3 จึงยังใช้รหัสเดิม และปิดห้องที่ถูกจองอยู่ไม่ได้</p>
       </div>
     </div>
-    <div class="legend"><span><i class="t-res"></i>reserved</span><span><i></i>free</span><span><i class="t-new"></i>newly added</span><span><i class="t-cut"></i>would be removed</span><span><i class="t-off"></i>out of service</span></div>
+    <div class="legend"><span><i class="t-res"></i>จองแล้ว</span><span><i></i>ว่าง</span><span><i class="t-new"></i>เพิ่มใหม่</span><span><i class="t-cut"></i>จะถูกลบออก</span><span><i class="t-off"></i>งดให้บริการ</span></div>
   </section>
 
   <!-- 13: Storage -->
-  <section class="slide" aria-roledescription="slide" aria-label="The queue survives a restart">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="คิวยังอยู่แม้เปิดโปรแกรมใหม่">
     <header class="slide-head">
       <div class="srcs"><span class="src">storage.py</span><span class="src">clinic.db</span></div>
       <span class="num"></span>
     </header>
-    <h2>The queue survives a restart</h2>
+    <h2>ปิดแล้วเปิดโปรแกรมใหม่ คิวก็ยังอยู่</h2>
     <div class="split body">
-      <pre class="code"><span class="dim">CREATE TABLE IF NOT EXISTS</span> registrations (
+      <pre class="code" lang="en"><span class="dim">CREATE TABLE IF NOT EXISTS</span> registrations (
     <span class="hl">row_id              INTEGER PRIMARY KEY</span>,
     appointment_date    TEXT NOT NULL,
     queue_id            TEXT NOT NULL,
@@ -773,23 +780,23 @@ pre.code .dim { color: var(--muted); }
     <span class="hl">UNIQUE (appointment_date, queue_id)</span>
 );</pre>
       <ul class="points">
-        <li><b>Date plus ticket is unique.</b><span>The database itself refuses a duplicate, even if the code had a bug.</span></li>
-        <li><b>row_id keeps arrival order.</b><span>The queue reloads in the order people registered.</span></li>
-        <li><b>Reservations are not saved; status is.</b><span>A reservation means "right now". Restored tomorrow, it would hold a room for a visit that already happened.</span></li>
-        <li><b>Older files are upgraded.</b><span><code>migrate()</code> adds new columns to an existing clinic.db instead of asking anyone to delete it.</span></li>
-        <li><b>The file stays on this computer.</b><span>It is excluded from git and never sent anywhere.</span></li>
+        <li><b>วันที่ + เลขบัตร ต้องไม่ซ้ำ</b><span>ฐานข้อมูลเองจะปฏิเสธข้อมูลซ้ำ แม้โค้ดจะมีบั๊ก</span></li>
+        <li><b>row_id รักษาลำดับการมาถึง</b><span>คิวถูกโหลดกลับมาตามลำดับที่ลงทะเบียน</span></li>
+        <li><b>ไม่บันทึกการจอง แต่บันทึกสถานะ</b><span>การจองหมายถึง "ตอนนี้" ถ้าโหลดกลับมาพรุ่งนี้ จะกลายเป็นจองห้องให้การตรวจที่จบไปแล้ว</span></li>
+        <li><b>อัปเกรดไฟล์เก่าได้</b><span><code>migrate()</code> เพิ่มคอลัมน์ใหม่ให้ clinic.db เดิม ไม่ต้องลบไฟล์ทิ้ง</span></li>
+        <li><b>ไฟล์อยู่ในเครื่องนี้เท่านั้น</b><span>ไม่ถูกเก็บใน git และไม่ถูกส่งไปที่ใด</span></li>
       </ul>
     </div>
   </section>
 
   <!-- 14: Import -->
-  <section class="slide" aria-roledescription="slide" aria-label="Bulk import is all or nothing">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="นำเข้าแบบผ่านทั้งหมดหรือไม่รับเลย">
     <header class="slide-head">
       <div class="srcs"><span class="src">bulk_import.py</span><span class="src">storage.save_many()</span></div>
       <span class="num"></span>
     </header>
-    <h2>Bulk import is all or nothing</h2>
-    <div class="csv" role="group" aria-label="Example CSV file with one invalid row">
+    <h2>นำเข้าหลายรายการ: ผ่านทั้งหมด หรือไม่รับเลย</h2>
+    <div class="csv" role="group" lang="en" aria-label="ตัวอย่างไฟล์ CSV ที่มีแถวผิดหนึ่งแถว">
       <ol>
         <li>patient_name,medical_information,appointment_date,phone_number,destination_ward</li>
         <li>Somchai Fictional,Routine follow-up. Invented record.,2026-09-08,081-000-0001,General medicine</li>
@@ -797,97 +804,97 @@ pre.code .dim { color: var(--muted); }
         <li class="bad">Nadia Fictional,Post-operative check. Not a real patient.,<mark>2026-02-30</mark>,(02) 123-4567,Orthopedics</li>
       </ol>
     </div>
-    <p class="verdict"><span class="chip chip-opt">Example</span>Row 4 has a date that does not exist, so the whole file is refused and none of the three patients is saved.</p>
+    <p class="verdict"><span class="chip chip-opt">ตัวอย่าง</span>แถวที่ 4 มีวันที่ที่ไม่มีอยู่จริง ไฟล์ทั้งไฟล์จึงถูกปฏิเสธ และไม่มีผู้ป่วยคนใดใน 3 คนถูกบันทึก</p>
     <ul class="trio body">
-      <li><b>Check everything, then write</b><span>Each row is validated exactly like a typed registration before anything is saved, then all rows go in one transaction.</span></li>
-      <li><b>Report every problem at once</b><span>Problems are listed by the row number the spreadsheet shows, with the header as row 1, so the file is fixed in one pass.</span></li>
-      <li><b>Tickets are always generated</b><span>A file cannot supply its own queue ID, so imported cases follow the same ticket rule as everyone else.</span></li>
+      <li><b>ตรวจทั้งหมดก่อน แล้วค่อยบันทึก</b><span>ทุกแถวถูกตรวจแบบเดียวกับการกรอกด้วยมือ จากนั้นจึงบันทึกทุกแถวในธุรกรรม (transaction) เดียว</span></li>
+      <li><b>รายงานทุกปัญหาในครั้งเดียว</b><span>บอกปัญหาตามเลขแถวที่เห็นในสเปรดชีต โดยหัวตารางคือแถวที่ 1 จึงแก้ไฟล์ได้ในรอบเดียว</span></li>
+      <li><b>สร้างเลขบัตรใหม่เสมอ</b><span>ไฟล์กำหนดเลขคิวเองไม่ได้ เคสที่นำเข้าจึงใช้กฎออกบัตรเดียวกับทุกคน</span></li>
     </ul>
   </section>
 
   <!-- 15: Tests -->
-  <section class="slide" aria-roledescription="slide" aria-label="110 automated checks">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="ทดสอบอัตโนมัติ 110 รายการ">
     <header class="slide-head">
       <div class="srcs"><span class="src">test_*.py</span></div>
       <span class="num"></span>
     </header>
-    <h2>110 automated checks, no clicking needed</h2>
+    <h2>ทดสอบอัตโนมัติ 110 รายการ ไม่ต้องคลิกเอง</h2>
     <div class="tests-grid body">
       <ul class="files">
-        <li><code>test_registration.py</code><span>Fields, tickets, per-date pools, the register button</span></li>
-        <li><code>test_assignment.py</code><span>Reserving a room and doctor, and refusals</span></li>
-        <li><code>test_assignment_modes.py</code><span>Manual choice, auto-assign in arrival order</span></li>
-        <li><code>test_capacity.py</code><span>Growing, shrinking, out of service</span></li>
-        <li><code>test_lifecycle.py</code><span>Mark done, release, database upgrade</span></li>
-        <li><code>test_storage.py</code><span>Save, reload, delete, uniqueness</span></li>
-        <li><code>test_bulk_import.py</code><span>All-or-nothing import and the sample file</span></li>
+        <li><code>test_registration.py</code><span>ช่องข้อมูล บัตรคิว ชุดเลขรายวัน และปุ่มลงทะเบียน</span></li>
+        <li><code>test_assignment.py</code><span>การจองห้องและแพทย์ และการปฏิเสธ</span></li>
+        <li><code>test_assignment_modes.py</code><span>การเลือกเอง และการจัดอัตโนมัติตามลำดับ</span></li>
+        <li><code>test_capacity.py</code><span>การเพิ่ม ลด และปิดปรับปรุง</span></li>
+        <li><code>test_lifecycle.py</code><span>Mark done การคืนห้อง และอัปเกรดฐานข้อมูล</span></li>
+        <li><code>test_storage.py</code><span>บันทึก โหลด ลบ และความไม่ซ้ำ</span></li>
+        <li><code>test_bulk_import.py</code><span>นำเข้าแบบผ่านทั้งหมดหรือไม่รับ และไฟล์ตัวอย่าง</span></li>
       </ul>
       <div class="callouts">
-        <p class="label">Three worth knowing</p>
+        <p class="label">สามข้อที่น่าสนใจ</p>
         <ul class="callouts">
-          <li>The arrival-order test registers tickets in <b>descending</b> order, so code that sorted by ticket number would fail.</li>
-          <li>A database in the <b>old shape</b>, with a patient in it, is upgraded and the patient is still there afterwards.</li>
-          <li>Every test uses a <b>temporary database</b>, so running them never touches the saved queue.</li>
+          <li>การทดสอบลำดับการมาถึงใช้เลขบัตรเรียงจาก<b>มากไปน้อย</b> ถ้าโค้ดเรียงตามเลขบัตร การทดสอบจะไม่ผ่าน</li>
+          <li>ฐานข้อมูล<b>รูปแบบเก่า</b>ที่มีผู้ป่วยอยู่ ถูกอัปเกรดแล้วผู้ป่วยยังอยู่ครบ</li>
+          <li>ทุกการทดสอบใช้<b>ฐานข้อมูลชั่วคราว</b> การรันจึงไม่แตะคิวที่บันทึกไว้</li>
         </ul>
       </div>
     </div>
-    <p class="cmd">python -m unittest test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py test_assignment_modes.py test_lifecycle.py</p>
+    <p class="cmd" lang="en">python -m unittest test_registration.py test_assignment.py test_storage.py test_bulk_import.py test_capacity.py test_assignment_modes.py test_lifecycle.py</p>
   </section>
 
   <!-- 16: Demo -->
-  <section class="slide" aria-roledescription="slide" aria-label="Live demonstration">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="สาธิตการใช้งานจริง">
     <header class="slide-head">
       <div class="srcs"><span class="src">app.py</span></div>
       <span class="num"></span>
     </header>
-    <h2>Live demonstration</h2>
+    <h2>สาธิตการใช้งานจริง</h2>
     <div class="demo-grid body">
       <ol class="demo">
-        <li><div><b>Register three fictional patients for General medicine, today</b><span>Every ticket starts Q01, with a different random ending.</span></div></li>
-        <li><div><b>Assign selected on each, in order</b><span>R01-1 · D01-1, then R01-2 · D01-2. The third stays Waiting and says why.</span></div></li>
-        <li><div><b>Open Rooms and doctors</b><span>Four resources are shown as reserved.</span></div></li>
-        <li><div><b>Mark the first case done, then Auto-assign all</b><span>Its freed pair goes straight to the waiting case.</span></div></li>
-        <li><div><b>Try to cut General medicine to one room</b><span>Refused, naming the room still in use.</span></div></li>
-        <li><div><b>Close the app and open it again</b><span>The queue comes back; reservations start fresh.</span></div></li>
+        <li><div><b>ลงทะเบียนผู้ป่วยสมมติ 3 คน แผนกอายุรกรรม นัดวันนี้</b><span>ทุกบัตรขึ้นต้นด้วย Q01 และลงท้ายด้วยเลขสุ่มที่ต่างกัน</span></div></li>
+        <li><div><b>กด Assign selected ทีละเคสตามลำดับ</b><span>ได้ R01-1 · D01-1 แล้ว R01-2 · D01-2 เคสที่สามยังรอคิวพร้อมบอกเหตุผล</span></div></li>
+        <li><div><b>เปิดแท็บ Rooms and doctors</b><span>แสดงห้องและแพทย์ 4 รายการที่ถูกจอง</span></div></li>
+        <li><div><b>กด Mark done ที่เคสแรก แล้วกด Auto-assign all</b><span>ห้องและแพทย์ที่คืนมา ถูกส่งต่อให้เคสที่รออยู่ทันที</span></div></li>
+        <li><div><b>ลองลดห้องแผนกอายุรกรรมเหลือ 1 ห้อง</b><span>ระบบปฏิเสธ พร้อมบอกชื่อห้องที่ยังถูกใช้อยู่</span></div></li>
+        <li><div><b>ปิดแล้วเปิดแอปใหม่</b><span>คิวกลับมาครบ ส่วนการจองเริ่มต้นใหม่</span></div></li>
       </ol>
       <div class="run">
-        <p class="label">Run it</p>
-        <p class="cmd">python app.py</p>
-        <p class="small">Standard library and Tkinter only. No internet connection, API key or ESP32 is needed for the demonstration.</p>
-        <p class="small">Every patient in the demo is fictional.</p>
+        <p class="label">วิธีรัน</p>
+        <p class="cmd" lang="en">python app.py</p>
+        <p class="small">ใช้แค่ไลบรารีมาตรฐานและ Tkinter การสาธิตไม่ต้องใช้อินเทอร์เน็ต API key หรือ ESP32</p>
+        <p class="small">ผู้ป่วยทุกคนในการสาธิตเป็นข้อมูลสมมติ</p>
       </div>
     </div>
   </section>
 
   <!-- 17: Limits and next -->
-  <section class="slide" aria-roledescription="slide" aria-label="Honest limits and next steps">
+  <section class="slide" aria-roledescription="สไลด์" aria-label="ข้อจำกัดและขั้นต่อไป">
     <header class="slide-head">
       <div class="srcs"><span class="src">AGENTS.md</span><span class="src">LEARNING.md</span></div>
       <span class="num"></span>
     </header>
-    <h2>Honest limits, and what comes next</h2>
+    <h2>ข้อจำกัดตามจริง และขั้นต่อไป</h2>
     <div class="limits-grid body">
       <div class="limits">
-        <h3>Not true yet</h3>
+        <h3>สิ่งที่ยังทำไม่ได้</h3>
         <ul>
-          <li>Reservations mean "now": no time slots, shifts or calendar</li>
-          <li>No urgency field; the queue runs in arrival order</li>
-          <li>First fit is predictable, not the best possible pairing</li>
-          <li>No lasting patient identity, so one person registered twice is not spotted</li>
-          <li>Nothing detects that a visit ended; staff press Mark done</li>
-          <li>One computer; two open windows don't share a queue until restart</li>
+          <li>การจองหมายถึง "ตอนนี้" ยังไม่มีช่วงเวลานัด กะการทำงาน หรือปฏิทิน</li>
+          <li>ยังไม่มีช่องความเร่งด่วน คิวเรียงตามลำดับการมาถึง</li>
+          <li>First fit คาดเดาได้ แต่ไม่ใช่การจับคู่ที่ดีที่สุด</li>
+          <li>ยังไม่มีรหัสประจำตัวผู้ป่วยถาวร คนเดียวลงทะเบียนสองครั้งจึงตรวจไม่พบ</li>
+          <li>ไม่มีอะไรตรวจจับได้ว่าการตรวจจบแล้ว เจ้าหน้าที่ต้องกด Mark done เอง</li>
+          <li>ใช้ได้เครื่องเดียว เปิดสองหน้าต่างจะไม่เห็นคิวของกันจนกว่าจะเปิดใหม่</li>
         </ul>
       </div>
       <div class="next">
-        <h3>Next, in order</h3>
+        <h3>ขั้นต่อไป ตามลำดับ</h3>
         <ul>
-          <li><span class="m">L4</span>Time slots with overlap checks and staff-set urgency</li>
-          <li><span class="m">L5</span>In progress, cancelled and overrun states</li>
-          <li><span class="m">L7</span>Simulated room events, then one ESP32 button</li>
-          <li><span class="m">L8</span>A documented baseline for visit length</li>
-          <li><span class="m">L9</span>Local FAQ answers that never see patient data</li>
+          <li><span class="m">L4</span>ช่วงเวลานัด ตรวจเวลาทับซ้อน และความเร่งด่วนที่เจ้าหน้าที่กำหนด</li>
+          <li><span class="m">L5</span>สถานะกำลังตรวจ ยกเลิก และเกินเวลา</li>
+          <li><span class="m">L7</span>จำลองสัญญาณจากห้อง แล้วต่อปุ่ม ESP32 หนึ่งปุ่ม</li>
+          <li><span class="m">L8</span>ค่าพื้นฐานของเวลาตรวจ ที่บอกที่มาชัดเจน</li>
+          <li><span class="m">L9</span>ตอบคำถามทั่วไปในเครื่อง โดยไม่เห็นข้อมูลผู้ป่วย</li>
         </ul>
-        <p class="thanks">Questions?</p>
+        <p class="thanks">ถาม–ตอบ</p>
       </div>
     </div>
   </section>
@@ -895,10 +902,10 @@ pre.code .dim { color: var(--muted); }
   <div class="progress" id="progress" aria-hidden="true"></div>
 </main>
 
-<nav class="controls" aria-label="Slide controls">
-  <button type="button" id="prev" aria-label="Previous slide">←</button>
+<nav class="controls" aria-label="ควบคุมสไลด์">
+  <button type="button" id="prev" aria-label="สไลด์ก่อนหน้า">←</button>
   <output id="count" aria-live="polite">1 / 17</output>
-  <button type="button" id="next" aria-label="Next slide">→</button>
+  <button type="button" id="next" aria-label="สไลด์ถัดไป">→</button>
 </nav>
 
 <script>
@@ -916,6 +923,20 @@ pre.code .dim { color: var(--muted); }
     var x = (window.innerWidth - 1280 * s) / 2;
     var y = (window.innerHeight - 720 * s) / 2;
     stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+  }
+
+  // Thai text metrics vary with the fonts that actually load, so a slide
+  // whose content runs past 720px is shrunk until it fits instead of clipping.
+  function autofit() {
+    slides.forEach(function (el) {
+      el.style.zoom = '';
+      if (!deck.matches) return;
+      for (var i = 0; i < 4; i++) {
+        if (el.scrollHeight - el.clientHeight <= 1) break;
+        var z = (parseFloat(el.style.zoom) || 1) * el.clientHeight / el.scrollHeight;
+        el.style.zoom = Math.max(0.72, z * 0.99).toFixed(3);
+      }
+    });
   }
 
   function show(n) {
@@ -954,10 +975,12 @@ pre.code .dim { color: var(--muted); }
   });
 
   window.addEventListener('resize', fit);
-  if (deck.addEventListener) deck.addEventListener('change', function () { fit(); show(current); });
+  if (deck.addEventListener) deck.addEventListener('change', function () { fit(); autofit(); show(current); });
 
   var start = parseInt((location.hash || '').slice(1), 10);
   show(isFinite(start) ? start - 1 : 0);
   fit();
+  autofit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(autofit);
 })();
 </script>

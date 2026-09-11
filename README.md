@@ -8,7 +8,7 @@ A student project using **Tkinter** and **ESP32** to explore better coordination
 - `Proposal.md`: an unchanged copy of the original proposal at project creation.
 - `LEARNING.md`: step-by-step learning roadmap, lesson progress, and independent rebuild exercises.
 - `HANDOFF.md`: shared newest-first session log for Codex and Claude Code.
-- `presentation/slides.html`: a presentation deck for the project. Open it in a browser and use the arrow keys; print it to save a PDF with one slide per page.
+- `presentation/slides.html`: a presentation deck for the project, in Thai. Open it in a browser and use the arrow keys; print it to save a PDF with one slide per page.
 
 ## Working direction
 

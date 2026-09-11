@@ -71,6 +71,11 @@ Newest first. One short entry per session: what changed, what was verified, what
   of the deck and NOT edited; the user should review them before any live demo.
 - Arrow keys / space / buttons navigate; the hash (`#5`) keeps the slide; narrow screens show
   the slides stacked; printing gives one 1280x720 page per slide for a PDF.
+- Then translated to Thai at the user's request, in place (the English version is commit
+  `7a2ef87`). Fonts changed to Anuphan (headings) and Sarabun (body) because the earlier faces
+  had no Thai glyphs; line heights raised for stacked Thai marks. App button names and the
+  app's own English error messages are kept verbatim, each message with a Thai gloss. A small
+  script shrinks any slide whose content exceeds 720px, since the layout was not seen.
 - Verified: 110 test methods counted across the seven test files, matching the slide. The full
   test run was started but backgrounded by the user and had not reported when this was
   written, so a passing run was NOT observed this session. No application code changed.
